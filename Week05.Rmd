@@ -1,0 +1,605 @@
+---
+title: "Basic Statistical Tests"
+author: "Elmer V Villanueva"
+date: "March 19, 2018"
+output: html_document
+---
+
+---
+# Comment
+# setwd("G:/Dropbox/00 - Working Folder/Teaching/DPH112/2017-2018/Week 04")
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this session, we will learn about general procedures used in the analysis of experimental studies. 
+
+In this session, this is the version of R that I am using:
+```{r echo=TRUE}
+R.version
+```
+
+### Install and load the R Markdown package
+```{r eval=TRUE}
+if (!require("rmarkdown")) install.packages("rmarkdown", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("rmarkdown")
+```
+
+### Create and set your working directory
+```{r echo=TRUE}
+setwd("G:/Dropbox/00 - Working Folder/Teaching/DPH112/2017-2018/Week 04")
+```
+
+### Download the data files from ICE onto your working directory
+You will need to download and unzip the data file package from ICE. It contains eight data files in CSV format.
+
+### Install and load the following packages onto R
+```{r eval=TRUE}
+if (!require("multcomp")) install.packages("multcomp", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+if (!require("alr3")) install.packages("alr3", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+if (!require("car")) install.packages("car", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+if (!require("gmodels")) install.packages("gmodels", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+```
+
+## Simple hypothesis testing
+### Independent-samples Student's t-test with pooled variance
+Ward and Quinn (1988) investigated differences in the fecundity (as measured by egg production) of a predatory intertidal gastropod (*Lepsiella vinosa*) in two different intertidal zones (mussel zone and the higher littorinid zone). We wish to test the null hypothesis that the population mean egg production is the same for both littorinid and mussel zones.
+
+1. Import the data.
+```{r, echo=TRUE}
+ward <- read.csv("ward.csv")
+str(ward)
+head(ward)
+```
+
+2. Assess assumption of normality and homogeneity of variance.
+```{r, echo=TRUE}
+boxplot(EGGS ~ ZONE, ward)
+with(ward, rbind(MEAN<-tapply(EGGS,ZONE,mean), 
+                 VAR<-tapply(EGGS,ZONE,var)))
+```
+
+**Conclusion.** There was no evidence of non-normality (boxplots not grossly asymmetrical) or unequal variance (boxplots very similar size and variances very similar). Hence, the simple, studentized (pooled variances) t-test is likely to be reliable.
+
+3. Perform an independent-samples t-test with pooled variance.
+```{r, echo=TRUE}
+t.test(EGGS ~ ZONE, ward, var.equal = T)
+```
+
+**Conclusions.** Reject the null hypothesis. Egg production by predatory gastropods was significantly greater (t~77~ = -5.39, P < 0.001) in mussel zones than littorinid zones on rocky intertidal shores.
+
+### Independent-samples Student's t-test with Satterthwaite's adjustment for unpooled variance 
+Furness and Bryant (1996) measured the metabolic rates of eight male and six female breeding northern fulmars and were interesting in testing the null hypothesis that there was no difference in metabolic rate between the sexes. 
+
+1. Import the data.
+```{r, echo=TRUE}
+furness <- read.csv("furness.csv")
+str(furness)
+head(furness)
+```
+
+2. Assess the assumptions of normality and homogeneity of variance.
+```{r, echo=TRUE}
+boxplot(METRATE ~ SEX, furness)
+with(furness, rbind(MEAN = tapply(METRATE, SEX, mean), 
+                    VAR = tapply(METRATE, SEX, var)))
+```
+
+**Conclusions.** Whilst there is no evidence of non-normality (boxplots not grossly asymmetrical), variances are a little unequal (although perhaps not grossly unequal - one of the boxplots is not more than three times smaller than the other). Hence, a separate variances t-test is more appropriate than a pooled variances t-test.
+
+3. Perform an independent-samples t-test with Satterthwaite's adjustment.
+```{r, echo=TRUE}
+t.test(METRATE ~ SEX, furness, var.equal = FALSE)
+```
+
+**Conclusions.** Do not reject the null hypothesis. Metabolic rate of male breeding northern fulmars was not found to differ signi???cantly (t = ???0.773, df = 10.468, P = 0.457) from that of females.
+
+## One-way analysis of variance
+### One-way analysis of variance with post-hoc pairwise comparisons
+Medley and Clements (1998) investigated the impact of zinc contamination (and other heavy metals) on the diversity of diatom species in the USA Rocky Mountains. The diversity of diatoms (number of species) and degree of zinc contamination (categorized as either of high, medium, low or natural background level) were recorded from between four and six sampling stations within each of six streams known to be polluted. These data were used to test the null hypothesis that there were no differences the diversity of diatoms between different zinc levels. 
+
+The linear model is $y_{ij} = \mu + \tau_j + \epsilon_{ij},\ i = 1 \dots n_j,\ j = 1 \dots k$, where $y_{ij}$ is the diversity of diatom species belonging to observation $i$ in group $j$, $\mu$ is the grand mean, $\tau_i$ is the effect of the $j$th zinc level and $\epsilon_{ij}$ is the error term.
+
+1. Import the data.
+```{r, echo=TRUE}
+medley <- read.csv("medley.csv")
+str(medley)
+head(medley)
+```
+
+2. Reorganize the levels of the categorical factor into a more logical order
+```{r, echo=TRUE}
+medley$ZINC <- factor(medley$ZINC, 
+                      levels = c("HIGH", "MED", "LOW", "BACK"), 
+                      ordered = F)
+```
+
+3.  Assess normality/homogeneity of variance using boxplots of species diversity against zinc level.
+```{r, echo=TRUE}
+boxplot(DIVERSITY ~ ZINC, medley)
+```
+
+**Conclusions.** No obvious violations of normality or homogeneity of variance (boxplots not asymmetrical and do not vary greatly in size).
+
+4. Assess homogeneity of variance assumption with a table and/or plot of mean versus variance.
+```{r, echo=TRUE}
+plot(tapply(medley$DIVERSITY, medley$ZINC, mean),
+     tapply(medley$DIVERSITY, medley$ZINC, var))
+```
+
+**Conclusions.** No obvious relationship between group mean and variance.
+
+5.  Test the null hypothesis by performing and analysis of variance of species diversity versus zinc-level group and examine the diagnostics (residual plot).
+```{r, echo=TRUE}
+medley.aov <- aov(DIVERSITY ~ ZINC, medley)
+plot(medley.aov)
+```
+
+**Conclusions.** No obvious violations of normality or homogeneity of variance (no obvious wedge shape in residuals, normal Q-Q plot approximately linear). 
+
+6. Examine the ANOVA table.
+```{r, echo=TRUE}
+anova(medley.aov)
+```
+
+**Conclusions.** Reject the null hypothesis that population group means are equal, ZINC was found to have a significant impact on the DIVERSITY of diatoms (F~3,30~ = 3.939, P = 0.018).
+
+7. Perform post-hoc Tukey's test to investigate pairwise mean differences between all groups
+```{r, echo=TRUE}
+TukeyHSD(x=medley.aov)
+```
+
+**Conclusions.** Diatom species diversity is significantly higher in low zinc sites than high zinc sites (t~15~ = 3.333, P = 0.011). No other null hypothesis is rejected. 
+
+## Two-way analysis of variance
+### Randomised complete block design
+To investigate the importance of leaf domatia on the abundance of mites, Walter and O¡¯Dowd (1992) shaved the domatia off the surface of one random leaf from each of 14 leaf pairs. Leaves where blocked into pairs of neighboring leaves in anticipation that different parts of a plant might have different numbers of mites. Their design represents a randomized complete block with leaf pairs as random blocks and the treatment (shaved or not) as the within block effect. The null hypothesis is that there is no effect of shaving domatia on the number of mites found on leaves.
+
+The linear model is $y_{ij} = \mu + \beta_i + \tau_j + \epsilon_{ij},\ i = 1 \dots n_j,\ j = 1 \dots k$, where $y_{ij}$ is the abundance of mites belonging to observation $i$ in group $j$, $\mu$ is the grand mean, $\beta_i$ is the block effect (leaf pair), $\tau_j$ is the treatment effect (shaved or unshaved) and $\epsilon_{ij}$ is the error term.
+
+1. Import the data
+```{r, echo=TRUE}
+walter <- read.csv("walter.csv")
+str(walter)
+head(walter)
+```
+
+2. Redefine the variable BLOCK as a factor.
+```{r, echo=TRUE}
+walter$BLOCK <- factor(walter$BLOCK)
+```
+
+3. Assess assumptions of normality and homogeneity of variance.
+```{r, echo=TRUE}
+boxplot(MITE ~ TREAT, walter)
+```
+
+**Conclusions.** Strong evidence of non-normality and unequal variance
+
+4. Log-transform the response variable. We need to add 0.5 because of the presence of zero results.
+```{r, echo=TRUE}
+boxplot(log(0.5 + MITE) ~ TREAT, walter)
+```
+
+**Conclusions.** On transformation, non-normality persists, but unequal variance has resolved somewhat.
+
+5. Investigate the presence of interaction of block by treatment interaction.
+```{r, echo=TRUE}
+library(alr3)
+resplot(lm(log(0.5 + MITE) ~ BLOCK + TREAT, walter))
+with(walter, interaction.plot (BLOCK, TREAT, log(0.5 + MITE)))
+```
+
+**Conclusions.** No strong evidence of an interaction between blocks and treatments.
+
+6. Fit the randomized complete block linear model.
+```{r, echo=TRUE}
+walter.aov.classic <- aov(log(0.5 + MITE) ~ BLOCK + TREAT,
+                          data = walter)
+summary(walter.aov.classic)
+```
+
+**Conclusions.** The number of mites were found to be signi???cantly lower on shaved leaves (those without domatia) than unshaved leaves.
+
+7. The randomised complete block may be fit in this manner, too. With no change in the conclusions. However, the implications are very important.
+```{r, echo=TRUE}
+walter.aov.nest <- aov(log(0.5 + MITE) ~ Error(BLOCK) + TREAT,
+                          data = walter)
+summary(walter.aov.nest)
+```
+
+8. Summarise the trends in a plot.
+
+Summarize the trends in a plot.
+```{r, echo=TRUE}
+op <- par(mar = c(4, 4, 0.1, 0.1))
+plot(MITE ~ as.numeric(BLOCK), 
+     data = walter, 
+     type = "n", 
+     axes = F, 
+     xlab = "", 
+     ylab = "")
+with(subset(walter, TREAT == "Without.domatia"), 
+     points(MITE ~ as.numeric(BLOCK), 
+            pch = 21, 
+            type = "o", 
+            lwd = 1))
+with(subset(walter, TREAT == "With.domatia"), 
+     points(MITE ~ as.numeric(BLOCK), 
+            pch = 16, 
+            type = "o", 
+            lwd = 1, 
+            lty = 1))
+axis(1, cex.axis = 0.8)
+mtext(text = "Leaf pair", 
+      side = 1, 
+      line = 3)
+axis(2, cex.axis = 0.8, las = 1)
+mtext(text = "Number of mites per leaf", 
+      side = 2, 
+      line = 3)
+legend("topright", 
+       leg = c("Without domatia", "With domatia"), 
+       lty = 0, 
+       pch = c(21, 16), 
+       bty = "n", 
+       cex = 0.7)
+box(bty = "l")
+```
+
+### Factorial analysis of variance
+Quinn (1988) manipulated the density of adults limpets within enclosures (6, 12 and 24 individuals per enclosure) during two seasons (winter-spring and summer-autumn) so as to investigate the effects of adult density and season on egg mass production. Three replicate enclosures per density/season combination were used, and both density and season were considered ???xed factors.
+
+The linear model is $y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk},\ i = 1 \dots a,\ j = 1 \dots b,\ k = 1 \dots n$. In this model, $y_{ijk}$ is a typical observation, $\mu$ is the grand mean, $\alpha_i$ is the effect due to Factor A (density), $\beta_j$ is the effect due to Factor B (season), $(\alpha\beta)_{ij}$ is the effect due to the interaction between Factor A and Factor B and \epsilon_{ijk} is the error term.
+
+1. Import the data
+```{r, echo=TRUE}
+quinn <- read.csv("quinn.csv")
+str(quinn)
+head(quinn)
+```
+
+2. Redefine DENSITY as a factor variable.
+```{r, echo=TRUE}
+quinn$DENSITY <- factor(quinn$DENSITY)
+```
+
+3. Assess assumptions of normality and homogeneity of variance.
+```{r, echo=TRUE}
+boxplot(EGGS ~ DENSITY * SEASON, quinn)
+```
+
+**Conclusions.** No evidence of non-normality (boxplots not wildly asymmetrical) and no apparent relationship between mean and variance (heights of boxplots increase up the y-axis). 
+
+4. Fit the factorial linear model.
+```{r, echo=TRUE}
+quinn.aov <- aov(EGGS ~ DENSITY * SEASON, data = quinn)
+```
+
+5. Examine the model diagnostics.
+```{r, echo=TRUE}
+plot(quinn.aov, which = 1)
+```
+
+**Conclusions.** As anticipated, there is no indication of a 'wedge' pattern in the residuals suggesting that the assumption of unequal variance is likely to be satis???ed.
+
+6. Examine the results of the model.
+```{r, echo=TRUE}
+summary(quinn.aov)
+```
+
+7. Summarise the trends in an interaction plot.
+```{r, echo=TRUE}
+library(gmodels)
+quinn.means <- tapply(quinn$EGGS, 
+                      list(quinn$DENSITY, quinn$SEASON), mean)
+quinn.se <- tapply(quinn$EGGS, 
+                   list(quinn$DENSITY, quinn$SEASON), 
+                        function(x) ci(x)[4])
+quinn$DENS <- as.numeric(as.character(quinn$DENSITY))
+plot(EGGS ~ DENS, quinn, 
+     type = "n", 
+     axes = F, 
+     xlab = "",
+     ylab = "")
+points(quinn.means[, 1] ~ unique(quinn$DENS), 
+       pch = 16,
+       type = "b", 
+       lwd = 2)
+arrows(unique(quinn$DENS), 
+       quinn.means[, 1] - quinn.se[, 1],
+       unique(quinn$DENS), 
+       quinn.means[, 1] + quinn.se[, 1],
+       code = 3, 
+       angle = 90, 
+       len = 0.1)
+points(quinn.means[, 2] ~ unique(quinn$DENS), 
+       pch = 16,
+       type = "b", 
+       lwd = 2, 
+       lty = 2)
+arrows(unique(quinn$DENS), 
+       quinn.means[, 2] - quinn.se[, 2],
+       unique(quinn$DENS), 
+       quinn.means[, 2] + quinn.se[, 2],
+       code = 3, 
+       angle = 90, 
+       len = 0.1)
+axis(1, cex.axis = 0.8)
+mtext(text = "Adult Density", 1, line = 3)
+axis(2, cex.axis = 0.8, las = 1)
+mtext(text = "Egg production", side = 2, line = 3)
+legend("topright", 
+       leg = c("Winter-spring", "Summer-autumn"),
+       lwd = 2, 
+       lty = c(1, 2), 
+       bty = "n")
+box(bty = "l")
+```
+
+### Simple repeated measures analsis of variance
+Driscoll and Roberts (1997) investigated the impact of fuel-reduction burning on the number of individual male frogs calling. Matched burnt and unburnt sites were blocked within six drainages, and the difference in number of calling male frogs between the sites was recorded for each drainage on three occasions (a 1992 pre-burn and two post burns in 1993 and 1994). They were primarily interested in investigating whether the mean difference in number of calling frogs between burn and control sites differed between years.
+
+The linear model is $y_{ij} = \mu + \beta_i + \tau_j + \epsilon_{ij},\ i = 1 \dots n_j,\ j = 1 \dots k$. *This is the same as the randomised complete block design!* In this case, $y_{ij}$ is the number of calls in drainage site $i$ in year $j$, $\mu$ is the grand mean, $\beta_i$ is the block effect (drainage site), $\tau_j$ is the measurement instance (1992, 1993 and 1994) and $\epsilon_{ij}$ is the error term.
+
+1. Import the data.
+```{r, echo=TRUE}
+driscoll <- read.csv("driscoll.csv")
+str(driscoll)
+head(driscoll)
+```
+
+2. Redefine the variable YEAR as a factor.
+```{r, echo=TRUE}
+driscoll$YEAR <- factor(driscoll$YEAR)
+```
+
+3. Assess assumptions of normality and homogeneity of variance.
+```{r, echo=TRUE}
+boxplot(CALLS ~ YEAR, driscoll)
+```
+
+**Conclusions.** No evidence of unequal variance, and the hypothesis test should be robust enough to account for any potential non-normality.
+
+4. Investigate whether or not there is any evidence of a block by year interaction.
+```{r, echo=TRUE}
+library(alr3)
+residualPlot(lm(CALLS ~ BLOCK + YEAR, driscoll))
+with(driscoll, interaction.plot(BLOCK, YEAR, CALLS))
+```
+
+**Conclusions.** No strong evidence of a blocking interaction.
+
+5. We need to convert the data into wide format.
+```{r, echo=TRUE}
+head(driscoll)
+dris.rm <- reshape(driscoll, 
+                   timevar = "YEAR", 
+                   v.names = "CALLS",
+                   idvar = "BLOCK", 
+                   direction = "wide")
+dris.rm
+dris.lm <- lm(cbind(CALLS.1, CALLS.2, CALLS.3) ~ 1, 
+              dris.rm)
+idata <- data.frame(YEAR = as.factor(c(1, 2, 3)))
+```
+
+6. Fit the repeated measures linear model.
+```{r, echo=TRUE}
+driscoll.rcb.WRONG <- aov(CALLS ~ Error(BLOCK) + YEAR, data = driscoll)
+summary(driscoll.rcb.WRONG)
+library(car)
+driscoll.sph <- Anova(dris.lm, idata = idata, idesign = ~YEAR)
+driscoll.sph
+summary(driscoll.sph)
+```
+
+**Conclusions.** Whilst the Mauchly test for sphericity does not indicate a problem with sphericity (P=0.355), Greenhouse-Geisser epsilon suggest substantial departures from sphericity (0.712). 
+
+7. Summarise the trends in a plot.
+```{r, echo=TRUE}
+driscoll$BLCK <- as.numeric(factor(driscoll$BLOCK, 
+                            levels = unique(driscoll$BLOCK)))
+plot(CALLS ~ BLCK, 
+     data = driscoll, 
+     type = "n", 
+     axes = F, 
+     xlab = "",
+     ylab = "")
+with(subset(driscoll, YEAR == "1"), 
+     points(CALLS ~ BLCK, 
+            pch = 21,
+            type = "o", 
+            lwd = 1))
+with(subset(driscoll, YEAR == "2"), 
+     points(CALLS ~ BLCK, 
+            pch = 15,
+            type = "o", 
+            lwd = 1, 
+            lty = 2))
+with(subset(driscoll, YEAR == "3"), 
+     points(CALLS ~ BLCK, 
+            pch = 5,
+            type = "o", 
+            lwd = 1, 
+            lty = 5))
+axis(1, cex.axis = 0.8)
+mtext(text = "Block", side = 1, line = 3)
+axis(2, cex.axis = 0.8, las = 1)
+mtext(text = "Difference in calls (burnt - unburnt)", 
+      side = 2, line = 3)
+legend("topright",
+       leg = c("Year 1", "Year 2", "Year 3"), 
+       lty = 0,
+       pch = c(21, 15, 5), 
+       bty = "n",
+       cex=0.9)
+box(bty="l")
+```
+
+## Analysis of covariance
+To investigate the impacts of sexual activity on male fruit???y longevity, Partridge and Farquhar (1981), measured the longevity of male fruit???ies with access to either one virgin female (potential mate), eight virgin females, one pregnant female (not a potential mate), eight pregnant females or no females. The available male fruit???ies varied in size and since size is known to impact longevity, the researchers randomly allocated each individual fruit???y to one of the ???ve treatments and also measured thorax length as a covariate.
+
+1. Import the data
+```{r, echo=TRUE}
+partridge <- read.csv("partridge.csv")
+str(partridge)
+head(partridge)
+```
+
+2. Assess assumptions of normality and homogeneity of variance.
+```{r, echo=TRUE}
+plot(aov(LONGEV ~ THORAX + TREATMENT, partridge), 
+     which = 1)
+```
+
+**Conclusions.** A distinct wedge shape is apparent in the residuals from the model ???tted with the raw longevity measurements suggesting homogeneity of variance issues.
+
+```{r, echo=TRUE}
+plot(aov(log(LONGEV) ~ THORAX + TREATMENT, partridge), 
+     which = 1)
+```
+
+**Conclusions.** Heteroskedasticity is less obvious in the log-transformed values. The analysis should be based on the transformed data.
+
+3. Assess assumptions of linearity, homogeneity of slopes and covariate range equality (using log-transformed data).
+```{r, echo=TRUE}
+library(lattice)
+print(xyplot(log(LONGEV) ~ THORAX | TREATMENT, 
+             partridge, 
+             type = c("r","p")))
+```
+
+**Conclusions.** The slopes of each of the relationships between the response
+(longevity) and the covariate (thorax length) appear similar and there is no
+evidence of non-linearity.
+
+You apply a formal test of the homogeneity of slopes by fitting an ANOVA model and examining the interaction term.
+```{r, echo=TRUE}
+anova(aov(log(LONGEV) ~ THORAX * TREATMENT, partridge))
+```
+
+**Conclusions** There is no evidence that the slopes are not parallel (F~4,115~ = 1.56, P = 0.182).
+
+4. Fit the linear model and produce an ANOVA table to test the null hypotheses that there are no effects of treatment (female type) on the (log-transformed) longevity of male fruitflies adjusted for thorax length. 
+```{r, echo=TRUE}
+partridge.aov <- aov(log(LONGEV) ~ THORAX + TREATMENT, partridge)
+summary(partridge.aov)
+```
+
+
+**Conclusions.** The quantity (F~1,119~ = 77.47, P < 0.001) and reproductive state (F~1,119~ = 28.49, P < 0.001) of female partners that a male fruit???y has access to has a signi???cant affect on male longevity.
+
+5. Summarise the trends in a plot.
+```{r, echo=TRUE}
+plot(LONGEV ~ THORAX, partridge, 
+     type = "n", 
+     axes = F, 
+     xlab = "",
+     ylab = "", 
+     log = "y")
+xs <- seq(min(partridge$THORAX), 
+          max(partridge$THORAX), 
+          l = 1000)
+part.lm <- lm(LONGEV ~ THORAX, partridge, 
+              subset = TREATMENT == "None")
+lines(xs, 
+      predict(part.lm, data.frame(THORAX = xs)), 
+      lty = 1)
+points(LONGEV ~ THORAX, partridge, 
+       subset = TREATMENT == "None",
+       type = "p", 
+       pch = 1)
+part.lm <- lm(LONGEV ~ THORAX, partridge, 
+              subset = TREATMENT == "Preg1")
+lines(xs, 
+      predict(part.lm, data.frame(THORAX = xs)), 
+      lty = 2)
+points(LONGEV ~ THORAX, partridge, 
+       subset = TREATMENT == "Preg1",
+       type = "p", 
+       pch = 23, 
+       bg = "gray")
+part.lm <- lm(LONGEV ~ THORAX, partridge, 
+              subset = TREATMENT == "Preg8")
+lines(xs, 
+      predict(part.lm, data.frame(THORAX = xs)), 
+      lty = 3)
+points(LONGEV ~ THORAX, partridge, 
+       subset = TREATMENT == "Preg8",
+       type = "p", 
+       pch = 24, 
+       bg = "gray")
+part.lm <- lm(LONGEV ~ THORAX, partridge, 
+              subset = TREATMENT == "Virg1")
+lines(xs, 
+      predict(part.lm, data.frame(THORAX = xs)), 
+      lty = 4)
+points(LONGEV ~ THORAX, partridge, 
+       subset = TREATMENT == "Virg1",
+       type = "p", 
+       pch = 23, 
+       bg = "black")
+part.lm <- lm(LONGEV ~ THORAX, partridge, 
+              subset = TREATMENT == "Virg8")
+lines(xs, 
+      predict(part.lm, data.frame(THORAX = xs)), 
+      lty = 5)
+points(LONGEV ~ THORAX, partridge, 
+       subset = TREATMENT == "Virg8",
+       type = "p", 
+       pch = 24, 
+       bg = "black")
+axis(1)
+mtext("Thorax length (mm)", 1, line = 3)
+axis(2, las = 1)
+mtext(expression(paste("Male fruitfly longevity (days)")), 2,
+      line = 3)
+legend("bottomright", 
+       legend = c("None", "1 pregnant", "8 pregnant", 
+                  "1 virgin", "8 virgin"), 
+       bty = "n", 
+       title = "Treatment", 
+       lty = 1:6, 
+       pch = c(1, 23, 24, 23, 24), 
+       pt.bg = c(1, "gray", "gray", 1, 1))
+box(bty = "l")
+```
+
+## Contingency tables
+In order to investigate the mortality of coolibah (Eucalyptus coolibah) trees across riparian dunes, Roberts (1993) counted the number of quadrats in which dead trees were present and the number in which they were absent in three positions (top, middle and bottom) along transects from the lakeshore up to the top of dunes. In this case, the classi???cation of quadrats according to the presence/absence of dead coolibah trees will be interpreted as a response variable and the position along transect as a predictor variable.
+
+1. Import the data
+```{r, echo=TRUE}
+roberts <- read.csv("roberts.csv")
+str(roberts)
+head(roberts)
+```
+
+2. Convert the dataframe into a collated table in preparation for contingency table analysis
+```{r, echo=TRUE}
+roberts.xtab <- table(roberts$POSITION, roberts$DEAD)
+roberts.xtab <- with(roberts, table(POSITION, DEAD))
+roberts.xtab
+```
+
+3. Test the null hypothesis that there is no association between the presence/absence of coolibah trees and position along transect.
+```{r, echo=TRUE}
+chisq.test(roberts.xtab, corr = F)
+```
+
+**Conclusions** The null hypothesis of no association is rejected. The mortality of coolibah trees was found to be signi???cantly associated to position along lakeside-dune transects ($\chi^2_2$ = 13.67, P = 0.001). THIS IS WRONG!!
+
+4. Perform the Fisher's exact test.
+```{r, echo=TRUE}
+fisher.test(roberts.xtab)
+```
+
+5. Summarise the findings in a mosaic plot.
+```{r, echo=TRUE}
+mosaicplot(roberts.xtab)
+```
+
+# THE END
