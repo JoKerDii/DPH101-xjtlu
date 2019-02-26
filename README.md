@@ -6,15 +6,16 @@ Thanks very much to a senior student Yiyou Song, who provided the learning resou
 
 Now I am reviewing this course before updating the code.
 
-Week01. Introduction
+**Week01. Introduction**
 
-Week02. Packages, working with data, subsetting data
+**Week02. Packages, working with data, subsetting data**
 
-Week03. Graphics in R
+**Week03. Graphics in R**
 
-Week04. Basic Statistical Tests
+**Week04. Basic Statistical Tests**
 
-Week05. Basic Statistical Tests
+**Week05. Basic Statistical Tests**
+
 
 1. Simple hypothesis testing
 
@@ -26,7 +27,7 @@ Independent-samples Student's t-test with Satterthwaite's adjustment for unpoole
 
 One-way analysis of variance with post-hoc pairwise comparisons
 
-3 Two-way analysis of variance
+3. Two-way analysis of variance
 
 Randomised complete block design
 
