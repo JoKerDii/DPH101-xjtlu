@@ -44,7 +44,7 @@ Simple repeated measures analsis of variance
 
 **Week08. Data management - linear regression and prediction**
 
-**Week09. Data management - Test the model**
+**Week09. Data management - test the model**
 
 
 
