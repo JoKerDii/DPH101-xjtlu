@@ -1,0 +1,95 @@
+---
+title: "Week 06"
+author: "Elmer V Villanueva"
+date: "April 2, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data management
+## Set Working Directory
+```{r}
+setwd("G:/Dropbox/00 - Working Folder/Teaching/DPH112/2017-2018/Week 06")
+```
+
+## Read the GLOW500 data from the `GLOW500.csv` file
+```{r}
+GLOW_ALL <- read.csv("GLOW500.csv")
+str(GLOW_ALL)
+head(GLOW_ALL)
+```
+
+## Read only the following three variables: AGE, HEIGHT, WEIGHT
+```{r}
+GLOW_3 <- read.csv("GLOW500.csv")[ ,c('AGE', 'HEIGHT', 'WEIGHT')]
+str(GLOW_3)
+head(GLOW_3)
+```
+
+## Transform HEIGHT to meters
+```{r}
+GLOW_3$HEIGHTCM <- GLOW_3$HEIGHT/100
+str(GLOW_3)
+```
+
+## Calculate BMI
+```{r}
+GLOW_3$BMI <- GLOW_3$WEIGHT/GLOW_3$HEIGHTCM^2
+str(GLOW_3)
+```
+
+## Drop the HEIGHT variable
+```{r}
+GLOW_3$HEIGHT <- NULL
+str(GLOW_3)
+```
+
+## Produce summary statistics
+```{r}
+summary(GLOW_3)
+```
+
+# Basic correlation
+```{r}
+plot(WEIGHT ~ BMI, data = GLOW_3)
+smoothScatter(GLOW_3$BMI, GLOW_3$WEIGHT)
+cor(GLOW_3$BMI, GLOW_3$WEIGHT)
+cov(GLOW_3$BMI, GLOW_3$WEIGHT)/(sd(GLOW_3$BMI)*sd(GLOW_3$WEIGHT))
+```
+
+# Fancy correlation
+## Install and load the package `car`
+```{r}
+if (!require("car")) install.packages("car", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("car")
+```
+
+## Proceed with the correlation
+```{r}
+scatterplot(WEIGHT ~ BMI, data = GLOW_3)
+cor.test(~ WEIGHT + BMI, data = GLOW_3)
+```
+
+# A word of warning
+## Load the Anscombe dataset
+```{r}
+library("datasets")
+str(anscombe)
+head(anscombe)
+summary(anscombe)
+```
+
+## Calculate the correlations of the `x, y` pairs in the Anscombe data
+```{r}
+cor(anscombe$x1, anscombe$y1)
+cor(anscombe$x2, anscombe$y2)
+cor(anscombe$x3, anscombe$y3)
+cor(anscombe$x4, anscombe$y4)
+```
+
+What do you notice?
+
+# THE END

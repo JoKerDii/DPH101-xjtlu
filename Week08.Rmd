@@ -1,0 +1,146 @@
+---
+title: "Week 08"
+author: "Elmer V Villanueva"
+date: "April 16, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Management
+
+
+## Install and load the package `car`
+```{r}
+if (!require("car")) install.packages("car", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("car")
+```
+
+## Read the GLOW500 data from the `GLOW500.csv` file, importing only the following variables: AGE, BMI, SMOKE, RATERISK 
+```{r}
+GLOW_4 <- read.csv("GLOW500.csv")[ ,c('AGE', 'BMI', 'SMOKE', 'RATERISK')]
+str(GLOW_4)
+head(GLOW_4)
+```
+
+```{r}
+GLOW_4$SMOKE
+```
+
+## Transform SMOKE and RATERISK into factor variables. See GLOW Description for labels.
+```{r}
+GLOW_4$SMOKE.F <- factor(GLOW_4$SMOKE, labels = c("No", "Yes"))
+GLOW_4$SMOKE <- NULL
+
+GLOW_4$RATERISK.F <- factor(GLOW_4$RATERISK, labels = c("Less", "Same", "Greater"))
+GLOW_4$RATERISK <- NULL
+
+summary(GLOW_4)
+```
+
+# Produce a scatterplot of BMI on AGE
+```{r}
+scatterplot(BMI ~ AGE, data = GLOW_4)
+```
+
+*Conclusion.* No strong evidence of non-normality, non-linearity and non-heteroskedasticity.
+
+# Fit a simple linear regression of BMI on AGE.
+## Specify the linear model
+```{r}
+GLOW_4.LM1 <- lm(BMI ~ AGE, data = GLOW_4)
+```
+
+## Examine the parameter estimates
+```{r}
+summary(GLOW_4.LM1)
+```
+
+*Conclusion.* The model is highly statistically significant (p<0.001), but explains only about 5% of the total variability in BMI. For every increase in age, BMI decreases by 0.15 units.
+
+## Produce confidence intervals for the parameter estimates
+```{r}
+confint(GLOW_4.LM1)
+```
+
+*Conclusion.* The model is highly statistically significant (p<0.001), but explains only about 5% of the total variability in BMI. For every increase in age, BMI decreases by 0.15 units **(95% CI -0.20, -0.09)**.
+
+## Test the assumptions of the model
+### Produce the predicted values
+```{r}
+GLOW_4$PRED <- predict(GLOW_4.LM1)
+```
+
+### Produce residuals
+```{r}
+GLOW_4$RESID <- residuals(GLOW_4.LM1)
+```
+
+### Test assumption 1: linearity of effect
+```{r}
+scatterplot(BMI ~ AGE, data = GLOW_4)
+```
+
+*Conclusion.* Strong evidence of linear effect.
+
+### Test assumption 2: independence
+This is not tested statistically.
+
+### Test assumption 3: normality of residuals
+```{r}
+hist(GLOW_4$RESID, main = "Histogram of Residuals")
+plot(density(GLOW_4$RESID), main = "Density of Residuals")
+qqnorm(GLOW_4$RESID, main = "Quantile-Quantile Plot of Residuals")
+shapiro.test(GLOW_4$RESID)
+```
+
+*Conclusion.* Residuals appear normally distributed, despite the statistically significant Shapiro-Wilk test.
+
+### Test assumption 4: equal variance
+#### Produce a Residuals-versus-Fitted plot (RvF plot)
+```{r}
+plot(RESID ~ PRED, data = GLOW_4); abline(h=0)
+```
+
+*Conclusion.* No strong evidence of heteroskedasticity.
+
+# Use the model to make predictions
+## What is the predicted BMI for women of the following ages: 25, 33, 40, 53, 67, 83 and 98?
+### Produce a data frame with *the same variable names* as the model. Include the values of the independent variable.
+```{r}
+NEWAGE <- c(25, 33, 40, 53, 67, 83, 98)
+NEWGLOW <- data.frame(AGE = NEWAGE)
+NEWGLOW$NEWBMI <- predict.lm(GLOW_4.LM1, NEWGLOW)
+NEWGLOW
+```
+
+# Fit a simple linear regression of BMI on SMOKE.F.
+```{r}
+GLOW_4.LM2 <- lm(BMI ~ SMOKE.F, data = GLOW_4)
+summary(GLOW_4.LM2)
+```
+
+How do you interpret the coefficient?
+
+# Fit a simple linear regression of BMI on RATERISK.F.
+```{r}
+GLOW_4.LM3 <- lm(BMI ~ RATERISK.F, data = GLOW_4)
+summary(GLOW_4.LM3)
+```
+
+Let's vary the reference level of the factor
+```{r}
+GLOW_4$RATERISK.F <- relevel(GLOW_4$RATERISK.F, ref = 2)
+GLOW_4.LM4 <- lm(BMI ~ RATERISK.F, data = GLOW_4)
+summary(GLOW_4.LM4)
+```
+
+Let's compare coefficients.
+```{r}
+coefficients(GLOW_4.LM3)
+coefficients(GLOW_4.LM4)
+```
+
+# THE END

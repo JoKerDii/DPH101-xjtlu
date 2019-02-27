@@ -1,0 +1,178 @@
+---
+title: "Week 09"
+author: "Elmer V Villanueva"
+date: "April 23, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Management
+
+## Install and load the package `car`
+```{r}
+if (!require("car")) install.packages("car", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("car")
+```
+
+## Read the GLOW500 data from the `GLOW500.csv` file, importing only the following variables: SUB_ID, AGE, WEIGHT, HEIGHT, BMI, FRACSCORE 
+```{r}
+GLOW_5 <- read.csv("GLOW500.csv")[ ,c('SUB_ID', 'AGE', 'WEIGHT', 'HEIGHT', 'BMI', 'FRACSCORE')]
+str(GLOW_5)
+head(GLOW_5)
+```
+
+# Produce a scatterplot matrix
+```{r}
+scatterplotMatrix(~FRACSCORE + AGE + WEIGHT + HEIGHT + BMI,
+                   data = GLOW_5,
+                   diag = "boxplot")
+```
+
+*Conclusion.* There is no evidence of non-normality, heterogeneity of variance or non-linearity.
+
+# Fit a multiple linear regression of FRACSCORE on AGE, WEIGHT, HEIGHT and BMI.
+## Specify the linear model.
+```{r}
+GLOW_5.LM1 <- lm(FRACSCORE ~ AGE + WEIGHT + HEIGHT + BMI,
+                 data = GLOW_5)
+```
+
+## Examine the parameter estimates
+```{r}
+summary(GLOW_5.LM1)
+```
+
+*Conclusion.* The model is highly statistically significant (p<0.001). The four variables jointly explain about 76% of the total variability in FRACSCORE. For every year AGE increases, FRACSCORE increases by 0.25 units after controlling for WEIGHT, HEIGHT and BMI. For every 1 unit increase in BMI, FRACSCORE decreases by 0.25 units after adjusting for AGE, WEIGHT and HEIGHT.
+
+## Produce confidence intervals for the parameter estimates
+```{r}
+confint(GLOW_5.LM1)
+```
+
+*Conclusion.* For every year AGE increases, FRACSCORE increases by 0.25 (95% CI 0.23, 0.26) units after controlling for WEIGHT, HEIGHT and BMI.
+
+# Test the assumptions of the model
+## Produce the predicted values and the residuals
+```{r}
+GLOW_5$PRED <- predict(GLOW_5.LM1)
+GLOW_5$RESID <- residuals(GLOW_5.LM1)
+```
+
+## Test assumption 1: linearity of effect
+### Explore plots of the relationships between the response variable (FRACSCORE) and each of the predictor variables while holding the other predictor variables constant.
+```{r}
+avPlots(GLOW_5.LM1, ask = F)
+```
+
+## Test assumption 2: independence
+This is not tested statistically.
+
+## Test assumption 3: normality of residuals
+```{r}
+hist(GLOW_5$RESID, main = "Histogram of Residuals")
+plot(density(GLOW_5$RESID), main = "Density of Residuals")
+qqnorm(GLOW_5$RESID, main = "Quantile-Quantile Plot of Residuals")
+shapiro.test(GLOW_5$RESID)
+```
+
+## Test assumption 4: equal variance
+### Produce a Residuals-versus-Fitted plot (RvF plot)
+```{r}
+plot(RESID ~ PRED, data = GLOW_5); abline(h=0)
+```
+
+## Test assumption 5: multicollinearity
+### Produce a scatterplot matrix of the independent variables
+```{r}
+scatterplotMatrix(~AGE + WEIGHT + HEIGHT + BMI,
+                   data = GLOW_5,
+                   diag = "boxplot")
+```
+
+### Calculate VIFs
+```{r}
+vif(GLOW_5.LM1)
+```
+
+*Conclusion.* Multicollinearity is a big problem.
+
+Let us omit WEIGHT from the model and test again.
+```{r}
+GLOW_5.LM2 <- lm(FRACSCORE ~ AGE + HEIGHT + BMI,
+                 data = GLOW_5)
+GLOW_5$PRED <- predict(GLOW_5.LM2)
+GLOW_5$RESID <- residuals(GLOW_5.LM2)
+
+avPlots(GLOW_5.LM2, ask = F)
+plot(density(GLOW_5$RESID), main = "Density of Residuals")
+plot(RESID ~ PRED, data = GLOW_5); abline(h=0)
+vif(GLOW_5.LM2)
+```
+
+*Conclusion.* The model assumptions are better met by this reduced model.
+
+The new model has the following estimated parameters
+```{r}
+summary(GLOW_5.LM2)
+summary(GLOW_5.LM1) # For comparison
+```
+
+# Examine influential observations.
+## Look for outliers. Outliers have studentized residuals less than -2 or greater than 2.
+```{r}
+GLOW_5$RSTUD <- rstudent(GLOW_5.LM2)
+hist(GLOW_5$RSTUD, main = "Histogram of Residuals")
+plot(rstudent(GLOW_5.LM2), type = "h"); abline(h=c(-2,2), col=2)
+OUTLIERS.LM2 <- subset(GLOW_5,
+                       RSTUD < -2 | RSTUD > 2)
+OUTLIERS.LM2
+```
+
+## Look for leverage. High leverage observations have leverage greater than (2k + 2)/n = (2 * 3 + 2) / 500 = 8/500 = 0.016
+```{r}
+GLOW_5$HATS <- hatvalues(GLOW_5.LM2)
+plot(hatvalues(GLOW_5.LM2), type = "h"); abline(h=0.016, col=2)
+HATS.LM2 <- subset(GLOW_5, HATS > 0.016)
+HATS.LM2
+```
+
+## Look for influential observations. High influence observations have Cook's distance > 4/n = 4/500 = 0.008
+```{r}
+GLOW_5$COOKSD <- cooks.distance(GLOW_5.LM2)
+plot(cooks.distance(GLOW_5.LM2), type = "h"); abline(h=0.008, col=2)
+COOKSD.LM2 <- subset(GLOW_5, COOKSD > 0.008)
+COOKSD.LM2
+```
+
+```{r}
+influencePlot(GLOW_5.LM2, id.method="noteworthy", main="Influence Plot", sub="Circle size is proportional to Cook's Distance")
+```
+
+# The final model is
+```{r}
+summary(GLOW_5.LM2)
+```
+
+What is wrong with this model?
+
+# THE END
+
+```{r}
+GLOW_5.LM3 <- lm(FRACSCORE ~ AGE + BMI, data = GLOW_5)
+summary(GLOW_5.LM3)
+confint(GLOW_5.LM3)
+GLOW_5$PRED <- predict(GLOW_5.LM3)
+GLOW_5$RESID <- residuals(GLOW_5.LM3)
+avPlots(GLOW_5.LM3, ask = F)
+hist(GLOW_5$RESID, main = "Histogram of Residuals")
+plot(RESID ~ PRED, data = GLOW_5); abline(h=0)
+vif(GLOW_5.LM3)
+influencePlot(GLOW_5.LM3, id.method="noteworthy", main="Influence Plot", sub="Circle size is proportional to Cook's Distance")
+```
+
+
+
+
