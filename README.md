@@ -39,3 +39,12 @@ Simple repeated measures analsis of variance
 
 5. Contingency tables
 
+
+**Week06. Data management - basic**
+
+**Week08. Data management - linear regression and prediction**
+
+**Week08. Data management - Test the model**
+
+
+
