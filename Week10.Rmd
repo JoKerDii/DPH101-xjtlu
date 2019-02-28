@@ -1,0 +1,146 @@
+---
+title: "Week 10"
+author: "Elmer V Villanueva"
+date: "April 30, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Management
+
+
+## Install and load the packages `car, plyr`
+```{r}
+if (!require("car")) install.packages("car", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("car")
+
+if (!require("MuMIn")) install.packages("MuMIn", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("MuMIn")
+```
+
+## Read the GLOW500 data from the `GLOW500.csv` file, importing only the following variables: SUB_ID, AGE, BMI, RATERISK, SMOKE
+```{r}
+GLOW_4 <- read.csv("GLOW500.csv")[ ,c('SUB_ID', 'AGE', 'BMI', 'PRIORFRAC', 'FRACTURE', 'FRACSCORE', 'RATERISK', 'SMOKE', 'PREMENO')]
+str(GLOW_4)
+head(GLOW_4)
+```
+
+###########################################################
+###########################################################
+
+# Factors as independent variables.
+## Regress BMI on AGE
+```{r}
+BMI.LM1 <- lm(BMI ~ AGE, data = GLOW_4)
+summary(BMI.LM1)
+```
+Interpret the intercept of AGE.
+
+## Regress BMI on SMOKE
+```{r}
+BMI.LM2 <- lm(BMI ~ SMOKE, data = GLOW_4)
+summary(BMI.LM2)
+```
+Interpret the intercept of SMOKE.
+
+## Transform SMOKE to a factor variable
+```{r}
+GLOW_4$SMOKE.F <- factor(GLOW_4$SMOKE, labels = c("No", "Yes"))
+summary(GLOW_4$SMOKE)
+summary(GLOW_4$SMOKE.F)
+```
+
+## Regress BMI on SMOKE
+```{r}
+BMI.LM3 <- lm(BMI ~ SMOKE.F, data = GLOW_4)
+summary(BMI.LM3)
+```
+Interpret the coefficient of SMOKE.F.
+
+### Compare the results of a linear regression of BMI on SMOKE and a t-test of BMI by SMOKE.
+```{r}
+# t-test
+t.test(BMI ~ SMOKE.F, data = GLOW_4, var.equal = TRUE)
+# Regression
+summary(BMI.LM3)
+```
+
+## Regress BMI on RATERISK.
+```{r}
+GLOW_4$RATERISK.F <- factor(GLOW_4$RATERISK, labels = c("Less", "Same", "More"))
+BMI.LM4 <- lm(BMI ~ RATERISK.F, data = GLOW_4)
+summary(BMI.LM4)
+```
+Interpret the coefficient of RATERISK.
+
+### Compare the results of a regression of BMI on RATERISK and a one-way analysis of variance of BMI by RATERISK.
+```{r}
+### One-way ANOVA
+oneway.test(BMI ~ RATERISK.F, data = GLOW_4, var.equal = TRUE)
+### Regression
+summary(BMI.LM4)
+```
+
+## Let's vary the reference value of the factor variable.
+```{r}
+GLOW_4$RATERISK.F <- relevel(GLOW_4$RATERISK.F, ref = 2)
+BMI.LM5 <- lm(BMI ~ RATERISK.F, data = GLOW_4)
+summary(BMI.LM5)
+```
+Interpret the coefficient of RATERISK.
+
+## Compare the coefficients
+```{r}
+coefficients(BMI.LM4)
+coefficients(BMI.LM5)
+```
+
+###########################################################
+###########################################################
+
+# Choosing the 'best' model.
+
+## Read the GLOW500 data from the `GLOW500.csv` file, importing only the following variables: SUB_ID, AGE, BMI, PRIORFRAC, FRACSCORE, RATERISK, SMOKE, PREMENO
+```{r}
+GLOW_7 <- read.csv("GLOW500.csv")[ ,c('SUB_ID', 'AGE', 'BMI', 'PRIORFRAC', 'FRACSCORE', 'RATERISK', 'SMOKE', 'PREMENO')]
+str(GLOW_7)
+head(GLOW_7)
+```
+
+## Transform appropriate integer variables into factor variables.
+```{r}
+GLOW_7$PRIORFRAC <- factor(GLOW_7$PRIORFRAC, labels = c("No", "Yes"))
+GLOW_7$RATERISK <- factor(GLOW_7$RATERISK, labels = c("Less", "Same", "More"))
+GLOW_7$SMOKE <- factor(GLOW_7$SMOKE, labels = c("No", "Yes"))
+GLOW_7$PREMENO <- factor(GLOW_7$PREMENO, labels = c("No", "Yes"))
+summary(GLOW_7)
+```
+
+## Regress BMI on AGE, FRACSCORE, RATERISK, PRIORFRAC, SMOKE, PREMENO
+```{r}
+BMI.FULL <- lm(BMI ~ AGE + FRACSCORE + RATERISK + 
+                   PRIORFRAC + SMOKE + PREMENO,
+               data = GLOW_7)
+summary(BMI.FULL)
+```
+
+## Choosing the 'best' model.
+```{r}
+summary(lm(BMI ~ AGE + FRACSCORE + RATERISK + PRIORFRAC + SMOKE + PREMENO,
+             data = GLOW_7))
+```
+
+
+### WARNING!! Automating the process. WARNING!!
+```{r}
+options(na.action = "na.fail")
+dredge(BMI.FULL, rank = "AIC")
+```
+
+
+
+
+

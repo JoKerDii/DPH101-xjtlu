@@ -1,0 +1,151 @@
+---
+title: "Week 11"
+author: "Elmer V Villanueva"
+date: "April 30, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Management
+## Install and load the packages `car, plyr, ggplot2, LogisticDx`
+```{r}
+if (!require("car")) install.packages("car", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("car")
+
+if (!require("plyr")) install.packages("plyr", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("plyr")
+
+if (!require("ggplot2")) install.packages("ggplot2", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("ggplot2")
+
+if (!require("LogisticDx")) install.packages("LogisticDx", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("LogisticDx")
+
+```
+
+
+## Read the GLOW500 data from the `GLOW500.csv` file, importing only the following variables: SUB_ID, FRACTURE, AGE, BMI, RATERISK, PRIORFRAC
+```{r}
+GLOW_5 <- read.csv("GLOW500.csv")[ ,c('SUB_ID', 'FRACTURE', 'AGE', 'BMI', 'RATERISK', 'PRIORFRAC')]
+GLOW_5$FRACTURE.F <- factor(GLOW_5$FRACTURE, labels = c("No", "Yes"))
+GLOW_5$RATERISK.F <- factor(GLOW_5$RATERISK, labels = c("Less", "Same", "More"))
+GLOW_5$RATERISK.F <- relevel(GLOW_5$RATERISK.F, ref = 2)
+GLOW_5$PRIORFRAC.F <- factor(GLOW_5$PRIORFRAC, labels = c("No", "Yes"))
+str(GLOW_5)
+head(GLOW_5)
+```
+
+# Examine the determinants of FRACTURE.
+## Start with AGE
+### Plot FRACTURE by AGE
+```{r}
+plot(FRACTURE ~ AGE, data = GLOW_5)
+```
+
+### Replot FRACTURE as a factor variable by AGE
+```{r}
+plot(FRACTURE.F ~ AGE, data = GLOW_5)
+```
+
+### Produce AGE categories
+```{r}
+AGECAT <- cut(GLOW_5$AGE, 
+              breaks = seq(55, 90, by = 5))
+
+FRACAGE <-ddply(GLOW_5,
+                .(AGECAT),
+                summarise,
+                PROP=sum(FRACTURE)/length(FRACTURE))
+
+ggplot(subset(FRACAGE, !is.na(AGECAT)),
+       aes(as.factor(AGECAT),
+           y=PROP)) +
+    geom_bar(stat="identity")
+```
+
+### Let's try to fit a LINEAR REGRESSION of FRACTURE.F on AGE
+```{r}
+FRACAGE.LM1 <- lm(FRACTURE.F ~ AGE, data = GLOW_5)
+```
+
+### Let's retry fitting FRACTURE on AGE
+```{r}
+FRACAGE.LM2 <- lm(FRACTURE ~ AGE, data = GLOW_5)
+summary(FRACAGE.LM2)
+plot(FRACTURE ~ AGE, data = GLOW_5)
+abline(FRACAGE.LM2)
+```
+
+# WARNING! This is **TERRIBLY ERRONEOUS**! WARNING!
+
+## Fit a proper logistic model of FRACTURE on AGE.
+```{r}
+FRACAGE.LM3 <- glm(FRACTURE ~ AGE, 
+                   data = GLOW_5,
+                   family = binomial)
+summary(FRACAGE.LM3)
+```
+
+### Test linearity assumption
+```{r}
+crPlots(FRACAGE.LM3)
+```
+
+### Test goodness of fit
+```{r}
+gof(FRACAGE.LM3)
+```
+
+### Examine influential points
+```{r}
+influence.measures(FRACAGE.LM3)
+influencePlot(FRACAGE.LM3)
+```
+
+### Produce odds ratios
+```{r}
+exp(cbind(OR = coef(FRACAGE.LM3), confint.default(FRACAGE.LM3)))
+```
+
+## Fit FRACTURE on AGE, BMI, PRIORFRAC, RATERISK
+```{r}
+FRAC.FULL <- glm(FRACTURE ~ AGE + BMI + PRIORFRAC.F + RATERISK.F, 
+                 data = GLOW_5,
+                 family = binomial)
+summary(glm(FRACTURE ~ AGE + BMI + PRIORFRAC.F + RATERISK.F, 
+            data = GLOW_5,
+            family = binomial))
+summary(glm(FRACTURE ~ AGE + PRIORFRAC.F + RATERISK.F, 
+            data = GLOW_5,
+            family = binomial))
+FRAC.FINAL <- glm(FRACTURE ~ AGE + PRIORFRAC.F + RATERISK.F, 
+                  data = GLOW_5, 
+                  family = binomial)
+```
+
+### Test linearity, goodness of fit and influencial points
+```{r}
+crPlots(FRAC.FINAL)
+gof(FRAC.FINAL)
+influence.measures(FRAC.FINAL)
+influencePlot(FRAC.FINAL)
+```
+
+### Produce odds ratios and confidence intervals.
+```{r}
+summary(FRAC.FINAL)
+exp(cbind(OR = coef(FRAC.FINAL), confint.default(FRAC.FINAL)))
+```
+
+# THE END
+
+
+
+
+
+
+
+

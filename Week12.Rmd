@@ -1,0 +1,101 @@
+---
+title: "Week 12"
+author: "Elmer V Villanueva"
+date: "May 14, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Management
+## Set Working Directory
+```{r}
+#setwd("G:/Dropbox/00 - Working Folder/Teaching/DPH112/2017-2018/Week 12")
+```
+
+## Install and load the packages `MASS, car, GGally`
+```{r}
+if (!require("MASS")) install.packages("MASS", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("MASS")
+
+if (!require("car")) install.packages("car", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("car")
+
+if (!require("GGally")) install.packages("GGally", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("GGally")
+```
+
+
+## Read the HINTS data from the `HINTS.csv` file, importing only the following variables: PersonID, WeeklyMinutesModerateExercise, Age, SelfGender, GeneralHealth, MedConditions_HighBP
+```{r}
+HINTS_5 <- read.csv("HINTS.csv")[ ,c('personid', 'weeklyminutesmoderateexercise', 'age', 'selfgender', 'generalhealth', 'medconditions_highbp')]
+str(HINTS_5)
+head(HINTS_5)
+```
+
+## Recode inappropriate variables
+```{r}
+HINTS_5$weeklyminutesmoderateexercise <- recode(HINTS_5$weeklyminutesmoderateexercise, "-9=NA")
+HINTS_5$age <- recode(HINTS_5$age, "-9=NA; -4=NA")
+HINTS_5$selfgender <- recode(HINTS_5$selfgender, "-9=NA; -5=NA")
+HINTS_5$generalhealth <- recode(HINTS_5$generalhealth, "-9=NA; -5=NA")
+HINTS_5$medconditions_highbp <- recode(HINTS_5$medconditions_highbp, "-9=NA; -1=NA")
+str(HINTS_5)
+```
+
+## Recode factor variables
+```{r}
+HINTS_5$selfgender <- factor(HINTS_5$selfgender, labels = c("Male", "Female"))
+HINTS_5$generalhealth <- factor(HINTS_5$generalhealth, labels = c("Excellent", "Very Good", "Good", "Fair", "Poor")) 
+HINTS_5$generalhealth <- relevel(HINTS_5$generalhealth, ref = 5)
+HINTS_5$medconditions_highbp <- factor(HINTS_5$medconditions_highbp, labels = c("Yes", "No"))
+str(HINTS_5)
+```
+
+# Explore the determinants of weeklyminutesmoderateexercise
+## Produce a scatterplot
+```{r}
+scatterplotMatrix(~ weeklyminutesmoderateexercise + age + selfgender + generalhealth + medconditions_highbp, data = HINTS_5)
+ggpairs(columns = 2:6, data = HINTS_5, upper = list(continuous = "points"))
+```
+
+### Note the density plot of the dependent variable
+```{r}
+densityPlot(HINTS_5$weeklyminutesmoderateexercise)
+```
+
+## ERROR! Fit a linear regression of weeklyminutesmoderateexercise on the covariates. ERROR!
+```{r}
+summary(HINTS.WRONG <- lm(weeklyminutesmoderateexercise ~ age + selfgender + generalhealth + medconditions_highbp, data = HINTS_5))
+```
+
+## Fit a Poisson regression of weeklyminutesmoderateexercise on the covariates.
+```{r}
+summary(HINTS.POISS <- glm(weeklyminutesmoderateexercise ~ age + selfgender + generalhealth + medconditions_highbp, data = HINTS_5, family = "poisson"))
+```
+
+## Check assumptions and influential points
+### Goodness of fit is examined using the deviance.
+### Linearity
+```{r}
+crPlots(HINTS.POISS)
+```
+
+### Influential points
+```{r}
+influence.measures(HINTS.POISS)
+influencePlot(HINTS.POISS)
+```
+
+### Produce estimates of effect and 95% confidence intervals
+```{r}
+est <- cbind(Estimate = coef(HINTS.POISS), confint.default(HINTS.POISS))
+est
+exp(est)
+```
+
+# THE END!!
+
+
