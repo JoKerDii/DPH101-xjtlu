@@ -8,15 +8,15 @@ Thanks very much to a senior student Yiyou Song, who provided the learning resou
 
 
 
-**Week01. Introduction**
+- **Week01. Introduction**
 
-**Week02. Packages, working with data, subsetting data**
+- **Week02. Packages, working with data, subsetting data**
 
-**Week03. Graphics in R**
+- **Week03. Graphics in R**
 
-**Week04. Basic Statistical Tests**
+- **Week04. Basic Statistical Tests**
 
-**Week05. Basic Statistical Tests**
+- **Week05. Basic Statistical Tests**
 
 
 1. Simple hypothesis testing
@@ -42,11 +42,11 @@ Simple repeated measures analsis of variance
 5. Contingency tables
 
 
-**Week06. Data management - basic**
+- **Week06. Data management - basic**
 
-**Week08. Data management - linear regression and prediction**
+- **Week08. Data management - linear regression and prediction**
 
-**Week09. Data management - test the model**
+- **Week09. Data management - test the model**
 
 
 
