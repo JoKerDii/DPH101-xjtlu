@@ -4,7 +4,9 @@ I' m very glad to have studied DPH101 (Statistics and R) and finished assignment
 
 Thanks very much to a senior student Yiyou Song, who provided the learning resource to me and answered all my questions.
 
-Now I am reviewing this course before updating the code.
+-- From Jun to Aug, 2018
+
+
 
 **Week01. Introduction**
 
