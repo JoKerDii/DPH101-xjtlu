@@ -1,0 +1,152 @@
+---
+title: "Week 03 R Workshop"
+author: "Elmer V Villanueva"
+date: "September 16, 2019"
+output: pdf_document
+---
+
+---
+# Comment
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# SET YOUR WORKING DIRECTORY!
+```{r}
+setwd("D:/git/DPH101-xjtlu/Y3/week03_lec_9.16")
+```
+
+# Load the `GLOW500` data.
+```{r}
+GLOW500_WORK <- read.csv("GLOW500.csv")
+```
+
+Make sure that you develop the habit of checking that the file was loaded correctly.
+```{r}
+str(GLOW500_WORK)
+head(GLOW500_WORK)
+```
+
+# Boxplots
+Let's produce a boxplot of `AGE`.
+```{r}
+boxplot(GLOW500_WORK$AGE,
+        ylab = "Age (years)",
+        main = "Distribution of Age in GLOW500")
+```
+
+Let's produce a boxplot of `WEIGHT` by prior fracture status (`PRIORFRAC`).
+```{r}
+boxplot(WEIGHT ~ PRIORFRAC, data = GLOW500_WORK,
+        ylab = "Weight (kg)",
+        xlab = "Prior Fracture",
+        main = "Distribution of Weight by Prior Fracture in GLOW500")
+```
+
+Why is the prior fracture labels appearing as zero and one?
+
+# Scatterplot
+Let's look at the relationship between `WEIGHT` and `HEIGHT`
+```{r}
+plot(WEIGHT ~ HEIGHT, data = GLOW500_WORK,
+     ylab = "Weight (kg)",
+     xlab = "Height (cm)",
+     main = "Weight versus Height in GLOW500")
+```
+
+# Simple numerical summaries
+Let's produce simple numerical summaries of `HEIGHT`.
+```{r}
+summary(GLOW500_WORK$HEIGHT)
+```
+
+## Geometric mean
+R doesn't have a built-in function for the geometric mean. However, there is a function in the `EnvStats` package that we can use.
+```{r}
+if (!require("EnvStats")) install.packages("EnvStats", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("EnvStats")
+```
+
+Let's calculate the geometric mean of `WEIGHT`.
+```{r}
+geoMean(GLOW500_WORK$WEIGHT)
+```
+
+There is an easier way, however, that we can do this without installing and loading a package.
+```{r}
+exp(mean(log(GLOW500_WORK$WEIGHT)))
+```
+
+## Harmonic mean
+R doesn't have a built-in function to calculate the harmonic mean, but there is a function in the `lmomco` package that we can use.
+```{r}
+if (!require("lmomco")) install.packages("lmomco", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("lmomco")
+```
+
+Let's calculate the harmonic mean of `HEIGHT`.
+```{r}
+harmonic.mean(GLOW500_WORK$HEIGHT)
+```
+
+As before, there is an easier way to calcualte this without needing to load a package.
+```{r}
+1/mean(1/GLOW500_WORK$HEIGHT)
+```
+
+## Quantiles
+Let's calcualte the 3rd, 45th, 59th and 93rd percentile of `AGE`.
+```{r}
+quantile(GLOW500_WORK$AGE, 
+         probs = c(0.03, 0.45, 0.59, 0.93))
+```
+
+Let's calculate the interquartile range of `AGE`.
+```{r}
+quantile(GLOW500_WORK$AGE, 
+         probs = c(0.25, 0.75))
+```
+
+## Standard deviation
+Calculate the standard deviation of `HEIGHT`.
+```{r}
+sd(GLOW500_WORK$HEIGHT)
+```
+
+## Variance
+Calculate the variance of `WEIGHT`.
+```{r}
+var(GLOW500_WORK$WEIGHT)
+```
+
+## Coefficient of variation
+Calculate the coefficeint of variation of `HEIGHT`.
+```{r}
+sd(GLOW500_WORK$HEIGHT)/mean(GLOW500_WORK$HEIGHT)
+```
+
+# Manipulating data
+Let's create a small data frame.
+```{r}
+ID <- c(1, 2, 3, 4, 5)
+PETALS <- c(30, 35, 26, 23, 41)
+COLOR <- c("Red", "White", "White", "Red", "Red")
+ROSE <- data.frame(ID, PETALS, COLOR)
+str(ROSE)
+head(ROSE)
+```
+
+Let's arrange the data in ascending order of the number of petals.
+```{r}
+ROSE[order(ROSE$PETALS),]
+```
+
+Let's produce a dataset containing only data from the red roses.
+```{r}
+ROSE.RED <- subset(ROSE, COLOR=="Red")
+head(ROSE.RED)
+```
+
+# THE END
