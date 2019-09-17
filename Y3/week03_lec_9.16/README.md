@@ -22,7 +22,7 @@ I've got "Chinese character issue", here are my solutions:
 
 * Sol 1: Change the YAML header manually or avoid chinese characters
 ```markdown
-data: "`r Sys.Date()`"
+date: "`r Sys.Date()`"
 ```
 * Sol 2: Install rticles package
 ```r
