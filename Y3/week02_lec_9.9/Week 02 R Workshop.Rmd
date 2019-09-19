@@ -1,0 +1,322 @@
+---
+title: "Week 02"
+author: "Elmer V Villanueva"
+date: "September 28, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# SET YOUR WORKING DIRECTORY!
+```{r}
+setwd("D:/r project/Y3-biostats/dph101.9.9")
+```
+
+# Working with Packages
+Load the "ChickWeight" dataset. The dataset is included in R and is used for standard analysis
+```{r}
+data("ChickWeight")
+```
+
+View the help file associated with the dataset
+```{r}
+help("ChickWeight")
+```
+
+If a package does not appear on the list, you need to install it first.
+```{r}
+if (!require("fortunes")) install.packages("fortunes", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+```
+
+Having installed a package does not mean it has been loaded.
+```{r}
+#fortunes(256)
+```
+
+You need to load it first
+```{r}
+library(fortunes)
+fortune(23)
+```
+
+To unload a package, use the `detach()` function
+```{r}
+detach(package:fortunes)
+```
+
+To completely uninstall a package, use the `remove.packages()` function
+```{r}
+remove.packages("fortunes")
+```
+
+***
+
+# Working with Data
+Let's enter data into R and produce a data frame.
+```{r}
+STUDENT <- c(1004, 1855, 2464, 2986)
+SEX <- c("M", NA, "F", "M")
+GRADE <- c(89, 65, NA, 76)
+DPH101 <- data.frame(STUDENT, SEX, GRADE)
+```
+
+You can use R's built-in data viewer to inspect and edit data
+```{r}
+View(DPH101)
+```
+
+You can use R's built-in data editor to inspect and edit data
+```{r}
+edit(DPH101)
+```
+
+You can save the data into a directory
+```{r}
+save(DPH101, file="D:/r project/Y3-biostats/dph101.9.9/DPH101.RData")
+```
+
+In order to simplify saving and loading tasks, set the working directory
+```{r}
+setwd("D:/r project/Y3-biostats/dph101.9.9")
+save(DPH101, file="DPH101.RData")
+```
+
+We can load the file using the load() function
+```{r}
+load("DPH101.RData")
+```
+
+Now, open the file `GLOW500.csv` in Excel. We need an easier way to enter this into R
+```{r}
+GLOW500_WORK <- read.csv("GLOW500.csv")
+save(GLOW500_WORK, file="GLOW500.RData")
+```
+
+Check the data frame
+```{r}
+View(GLOW500_WORK)
+```
+
+Let's look at one of the variables PRIORFRAC and compare it to the codebook
+```{r}
+GLOW500_WORK$PRIORFRAC
+```
+
+Note that this is a numerical variable
+```{r}
+class(GLOW500_WORK$PRIORFRAC)
+```
+
+We want to change this variable type to a factor variable. Before we do this in the actual dataset, let's test this with the variable `TWEAK`.
+```{r}
+TWEAK <- factor(GLOW500_WORK$PRIORFRAC)
+class(TWEAK)
+TWEAK
+```
+
+We see that `TWEAK` is a factor variable with levels of "0" and "1". These levels are meaningless without the codebook. Let's change that by adding labels.
+```{r}
+TWEAK <- factor(GLOW500_WORK$PRIORFRAC, 
+                labels=c("No", "Yes"))
+class(TWEAK)
+TWEAK
+```
+
+Now that we know it works, we can do this in the real dataset.
+```{r}
+GLOW500_WORK$PRIORFRAC1 <- factor(GLOW500_WORK$PRIORFRAC, 
+                                  labels=c("No", "Yes"))
+class(GLOW500_WORK$PRIORFRAC1)
+```
+
+Let's check that PRIORFRAC and PRIORFRAC1 contain the same data
+```{r}
+table(GLOW500_WORK$PRIORFRAC, GLOW500_WORK$PRIORFRAC1)
+```
+
+Try revising PREMENO
+```{r}
+class(GLOW500_WORK$PREMENO)
+GLOW500_WORK$PREMENO1 <- factor(GLOW500_WORK$PREMENO, 
+                                labels=c("No", "Yes"))
+class(GLOW500_WORK$PREMENO1)
+table(GLOW500_WORK$PREMENO, GLOW500_WORK$PREMENO1)
+```
+
+## Try revising all other factor variables MOMFRAC, ARMASSIST, SMOKE, RATERISK, FRACTURE.
+You should try this on your own. Below, however, I have supplied the answers
+
+### Revising MOMFRAC
+```{r}
+GLOW500_WORK$MOMFRAC1 <- factor(GLOW500_WORK$MOMFRAC, 
+                                labels=c("No", "Yes"))
+table(GLOW500_WORK$MOMFRAC, GLOW500_WORK$MOMFRAC1)
+```
+
+### Revising ARMASSIST
+```{r}
+GLOW500_WORK$ARMASSIST1 <- factor(GLOW500_WORK$ARMASSIST, 
+                                  labels=c("No", "Yes"))
+table(GLOW500_WORK$ARMASSIST, GLOW500_WORK$ARMASSIST1)
+```
+
+### Revising SMOKE
+```{r}
+GLOW500_WORK$SMOKE1 <- factor(GLOW500_WORK$SMOKE, 
+                              labels=c("No", "Yes"))
+table(GLOW500_WORK$SMOKE, GLOW500_WORK$SMOKE1)
+```
+
+### Revising FRACTURE
+```{r}
+GLOW500_WORK$FRACTURE1 <- factor(GLOW500_WORK$FRACTURE, 
+                                 labels=c("No", "Yes"))
+table(GLOW500_WORK$FRACTURE, GLOW500_WORK$FRACTURE1)
+```
+
+### Revising RATERISK
+```{r}
+GLOW500_WORK$RATERISK1 <- factor(GLOW500_WORK$RATERISK, 
+                                 labels=c("Less", "Same", "Greater"))
+table(GLOW500_WORK$RATERISK, GLOW500_WORK$RATERISK1)
+```
+
+Let's drop some superfluous variables
+```{r}
+GLOW500_WORK[,"PRIORFRAC"] <- list(NULL)
+GLOW500_WORK[,"PREMENO"] <- list(NULL)
+GLOW500_WORK[,"MOMFRAC"] <- list(NULL)
+GLOW500_WORK[,"ARMASSIST"] <- list(NULL)
+GLOW500_WORK[,"SMOKE"] <- list(NULL)
+GLOW500_WORK[,"RATERISK"] <- list(NULL)
+GLOW500_WORK[,"FRACTURE"] <- list(NULL)
+```
+
+Save the dataset as `GLOW500FINAL.RData`.
+```{r}
+save(GLOW500_WORK, file="GLOW500FINAL.RData")
+```
+
+***
+
+# Replicating TTR
+## Fequency Distributions
+Consider the variable `AGE` in `GLOW500`.
+```{r}
+summary(GLOW500_WORK$AGE)
+```
+
+We can ask R to create age groups as follows:
+```{r}
+GLOW500_WORK$AGECAT <- cut(GLOW500_WORK$AGE, breaks=c(54,59,64,69,74,79,84,89,Inf))
+GLOW500_WORK$AGECAT
+```
+
+The labels are awkward. Let's change them.
+```{r}
+GLOW500_WORK$AGECAT <- cut(GLOW500_WORK$AGE,
+                           breaks=c(54,59,64,69,74,79,84,89,Inf),
+                           labels=c("55-59", "60-64", "65-69", "70-74", 
+                                    "75-79", "80-84", "85-89", "90"))
+summary(GLOW500_WORK$AGECAT)
+```
+
+The summary gives a frequency distribution, but not a relative frequency distribution. There are two other functions that might help us: `table()` and `prop.table()`. Let's see if it will work:
+```{r}
+table(GLOW500_WORK$AGECAT)
+prop.table(table(GLOW500_WORK$AGECAT))
+```
+
+The calculations are there, but they're very hard to understand. 
+
+A neat little function is `freq()` in the `summarytools` package.
+```{r}
+if (!require("summarytools")) install.packages("summarytools", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("summarytools")
+freq(GLOW500_WORK$AGECAT)
+```
+
+## Histograms
+Base R's `hist()` function can draw a basic histogram.
+```{r}
+hist(GLOW500_WORK$AGE)
+```
+
+This graph is not properly formatted. Let's change the horizontal axis.
+```{r}
+hist(GLOW500_WORK$AGE,
+     xlab = "Age (years)")
+```
+
+Let's include a title.
+```{r}
+hist(GLOW500_WORK$AGE,
+     xlab = "Age (years)",
+     main = "Histogram of Age in GLOW500")
+```
+
+We can adjust other elements in the graph.
+```{r}
+hist(GLOW500_WORK$AGE,
+     xlab = "Age (years)",
+     main = "Histogram of Age in GLOW500",
+     border = "red",
+     col = "blue")
+```
+
+Let's change the size of the breaks.
+```{r}
+hist(GLOW500_WORK$AGE,
+     xlab = "Age (years)",
+     main = "Histogram of Age in GLOW500",
+     border = "red",
+     col = "blue",
+     breaks = c(55, 65, 75, 85, 90))
+```
+
+# Dot plots
+These are better known as strip charts or strip charts.
+```{r}
+stripchart(GLOW500_WORK$AGE)
+```
+
+This doesn't look like much of anything. This is because all the points are overlaid on each other. You need to specify the option `method = "stack"` to produce the effect we want.
+```{r}
+stripchart(GLOW500_WORK$AGE, 
+           method = "stack")
+```
+
+The chart is truncated at the top, so we need to lower the chart area.
+```{r}
+stripchart(GLOW500_WORK$AGE, 
+           method = "stack", 
+           at = 0.3)
+```
+
+We can change the plotting symbol into filled circles.
+```{r}
+stripchart(GLOW500_WORK$AGE, 
+           method = "stack", 
+           at = 0.3,
+           pch = 16)
+```
+
+Finally, let's add an axis label and a title.
+```{r}
+stripchart(GLOW500_WORK$AGE, 
+           method = "stack", 
+           at = 0.3,
+           pch = 16,
+           xlab = "Age (years)",
+           main = "Distribution of Age in GLOW500")
+```
+
+# Stem plot
+This is better known as a stem-and-leaf plot.
+```{r}
+stem(GLOW500_WORK$AGE)
+```
+
+# THE END
