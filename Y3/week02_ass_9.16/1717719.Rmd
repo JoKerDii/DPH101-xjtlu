@@ -1,0 +1,86 @@
+---
+title: '1717719'
+author: "dizhen"
+date: "2019/9/15"
+output:
+  html_document: default
+  pdf_document: default
+---
+Set working directory and import the dataset:
+```{r}
+setwd("D:/git/DPH101-xjtlu/Y3/week02_ass_9.16")
+IQLEAD_table <- read.table("IQLEAD.txt", header = TRUE)
+save(IQLEAD_table, file="IQLEAD.RData")
+```
+
+# Question 1: 
+
+Prepare a properly formatted table
+```{r}
+View(IQLEAD_table)
+head(IQLEAD_table)
+```
+Summarises the ages of the subjects.
+```{r}
+summary(IQLEAD_table$AGE)
+```
+The table's stub must use classes of width three.
+```{r}
+IQLEAD_table$AGECAT <- cut(IQLEAD_table$AGE, breaks = seq(2, 17, by = 3))
+summary(IQLEAD_table$AGECAT)
+```
+The second column must present the frequencies, The third column must present the relative frequencies, The last column must present the cumulative relative frequencies.
+```{r}
+if (!require("summarytools")) install.packages("summarytools", repos = "https://mirrors.tuna.tsinghua.edu.cn/CRAN/")
+library("summarytools")
+freq(IQLEAD_table$AGECAT)
+```
+
+```{r}
+tr_table <- freq(IQLEAD_table$AGECAT)[,c(1:3)]
+tr_table <- as.data.frame(tr_table)
+write.csv(tr_table,"freq_table.csv")
+```
+
+# Question 2:
+
+Construct a properly formatted histogram of the ages of the subjects using bin widths of three.
+```{r}
+png(filename="histogram of age.png")
+hist(IQLEAD_table$AGE,
+     xlab = "Age (years)",
+     main = "Histogram of Age in IQLEAD",
+     border = "white",
+     col = "dark blue",
+     breaks = seq(2, 17, by = 3))
+dev.off()
+```
+
+# Question 3:
+
+Construct a properly formatted strip plot of the ages of the subjects.
+```{r}
+png(filename = "stripchart of age.png")
+stripchart(IQLEAD_table$AGE, 
+           method = "stack", 
+           at = 0.3,
+           pch = 16,
+           xlab = "Age (years)",
+           main = "Distribution of Age in IQLEAD")
+dev.off()
+```
+
+# Question 4:
+Construct a properly formatted Pareto plot of the sexes of the subjects.
+```{r}
+
+IQLEAD_table$F_SEX <- factor(IQLEAD_table$SEX, 
+                                 labels=c("Male", "Female"))
+table(IQLEAD_table$F_SEX, IQLEAD_table$SEX)
+
+freq_table <- freq(IQLEAD_table$F_SEX)[c(1:2),c(1)]
+png(filename = "pareto chart of sex.png")
+barplot(freq_table, ylab = "Frequency", xlab = "Sex")
+dev.off()
+```
+
