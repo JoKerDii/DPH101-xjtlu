@@ -14,7 +14,7 @@ tinytex:::is_tinytex()
 ```
 3. Install MikTex from :
 https://miktex.org/2.9/setup
-4. Click Knit -> Knit to PDF
+4. Click Knit -> Knit to PDF (recommend to set **UTF-8** as encoding)
 
 ### PS: 
 
