@@ -1,0 +1,71 @@
+---
+title: "DPH101/ENV203 Assignment Basic Probability ANSWERS"
+author: "Elmer V Villanueva"
+date: "October 07, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+
+Given
+
+##### Table 1. Skill retention by intervention group.
+| Competence | CPR | CC-CPR | Total |
+|:-----------|----:|-------:|------:|
+| Yes        | 12  | 15     | 27    |
+| No         | 15  | 14     | 29    |
+| Total      | 27  | 29     | 56    |
+
+Find the following probabilities:
+
+1. $P(CC-CPR) = 29/56 = 0.5178$
+```{r}
+29/56
+```
+
+2. $P(Competent) = 27/56 = 0.4821$
+```{r}
+27/56
+```
+
+3. $P(Competent \cap CPR) = P(Competent | CPR) \cdot P(CPR) = (12/27) \cdot (27/56) = 12/56 = 0.2143$
+```{r}
+12/56
+```
+
+4. $P(Competent \cup CC-CPR) = P(Competent) + P(CC-CPR) - P(Competent \cap CC-CPR) = 27/56 + 29/56 - 15/56 = 41/56 = 0.7321$
+```{r}
+41/56
+```
+
+5. $P(Competent | CC-CPR) = P(Competent \cap CC-CPR) / P(CC-CPR) = (15/56) / (29/56) = 15/29 = 0.5172$
+```{r}
+15/29
+```
+
+# Question 2
+
+$P(age > 30 \cup master's\ degree) = P(age > 30) + P(master's\ degree) - P(age > 30 \cap master's\ degree) = 15/25 + 8/25 - 2/25 = 21/25 = 0.8400$
+```{r}
+21/25
+```
+
+# Question 3
+The definition of a conditional probability is given as 
+
+$$ P(B|A) = \dfrac{P(B \cap A)}{P(A)};\ P(A) \neq 0$$
+
+If we specify events B and A to be {allergy} and {exposed}, respectively, and solve for $P(exposed)$, we get:
+
+$$
+P(exposed) = \dfrac{P(allergy \cap exposed)}{P(allergy | exposed)} = \dfrac{0.6}{0.8} = 0.7500
+$$
+```{r}
+0.6/0.8
+```
+
+# THE END

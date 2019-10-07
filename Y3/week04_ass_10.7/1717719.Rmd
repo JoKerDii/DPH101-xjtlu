@@ -1,0 +1,81 @@
+---
+title: '1717719'
+author: "Di Zhen"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+## 1
+P(A randomly selected subject was enrolled in the CC-CPR class) = $\frac{29}{56} = 0.5178$
+
+## 2
+P(A randomly selected subject was rated competent) = $\frac{27}{56} = 0.4821$
+
+## 3
+Let A = A randomly selected subject was rated competent,
+B = A randomly selected subject was enrolled in the CPR course.
+
+$P(A \cap B) = \frac{12}{56} = 0.2142$
+
+## 4
+Let A = A randomly selected subject was rated competent, 
+C = A randomly selected subject was enrolled in the CC-CPR course.
+
+$P(A \cup C) = P(A) + P(C) - P(A \cap C) = \frac{27+29-15}{56} =  \frac{41}{56} = 0.7321$
+
+## 5
+Let A = A randomly selected subject was rated competent, 
+C = A randomly selected subject was enrolled in the CC-CPR course.
+$P(A|C) = \frac{P(A \cap C)}{P(C)} = \frac{\frac{15}{56}}{\frac{29}{56}} = 0.5172$
+
+# Question 2
+
+According to the question 2, we can build a table:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lrrr}
+\hline
+                        & under 30    & over 30    & total \\
+\hline
+bachelor's degrees      & 4           & 13        & 17\\
+master's degrees        & 6           & 2         & 8\\
+total                   & 10          & 15        & 25\\
+\hline
+\end{tabular}
+\end{table}
+
+Let A = A randomlt selected person who is over 30,  
+B = A randomly selected person with a master's degree.
+
+$P(A \cup B) = P(A) + P(B) - P(A \cap B) = \frac{15 + 8 - 2}{25} =  \frac{21}{25} = 0.8400$
+
+So the probability that a person over 30 or a person with a master's degree will be selected is 0.8400.
+
+# Question 3
+
+Let A = A randomly selected student who will have been exposed to a certain allergen,
+B = A randomly selected students who experience a reaction to the allergen.
+According to the question:
+
+$P(B|A) = 0.8$
+
+$P(B \cap A) = 0.6$
+
+According to the Bayes' Rule:
+
+$P(B|A) = \frac{P(B \cap A)}{P(A)}$
+
+Thus, we can get:
+
+$P(A) = \frac{P(B \cap A)}{P(B|A)} = \frac{0.6}{0.8} = 0.7500$
+
+So the probability that he or she will have been exposed to the allergen is 0.7500.
+
