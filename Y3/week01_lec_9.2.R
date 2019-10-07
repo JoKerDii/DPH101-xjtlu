@@ -11,7 +11,7 @@ c(1:4) + 1
 c(1,2,3,4) + c(10,100)
 c(1,2,3,4,5) + c(10,100)
 1+2+# ENV203 is difficult
-3  
+  3  
 exp(12)
 cos(pi)
 log(x = 64, base = 4)
@@ -54,10 +54,8 @@ dph$student
 dph$grade<67
 rnorm
 
-## rule
-# 99.22%
-# 0.9922
-# stat(mean, sd, etc.) : +1
+##### rule
+# proportion: 99.22% or 0.9922 (can be probability, ratio, odds or others)
+# ex: 1/8 = 0.1250 or 12.50%
+# stat(mean, sd, cv, SE, etc.) : +1
 # variance: +2
-
-
