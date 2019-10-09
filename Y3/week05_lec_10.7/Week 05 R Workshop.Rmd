@@ -1,0 +1,189 @@
+---
+title: "Week 05 R Workshop"
+author: "Elmer V Villanueva"
+date: "October 7, 2019"
+output: html_document
+---
+
+---
+# Comment
+# setwd("D:/Dropbox/00 - Working Folder/Teaching/DPH101/2019-2020/Week 05 Discrete Probability Distributions/R05 R Workshop")
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# New functions and packages
+- `choose()`
+- `sum()`
+- `dbinom()`  calculate P(probability) of x
+- `pbinom()`  calculate F(cumulative probability) of x
+- `dpois()`
+- `ppois()`
+
+# Set your working directory
+```{r}
+setwd("D:/git/DPH101-xjtlu/Y3/week05_lec_10.7")
+```
+
+# Load GLOW500 Data
+```{r}
+GLOW500_WORK <- read.csv("GLOW500.csv")
+str(GLOW500_WORK)
+head(GLOW500_WORK)
+```
+
+Let's focus on the variable `PRIORFRAC`. It's still a numeric variable and we need to transform it into a factor variable.
+```{r}
+GLOW500_WORK$PRIORFRAC.F <- factor(GLOW500_WORK$PRIORFRAC, 
+                                  labels=c("No", "Yes"))
+table(GLOW500_WORK$PRIORFRAC.F, GLOW500_WORK$PRIORFRAC)
+```
+
+## Question 1: What is the probability of a history of prior fracture in this study population?
+```{r}
+prop.table(table(GLOW500_WORK$PRIORFRAC.F))
+```
+
+-----
+
+# Binomial Distribution
+
+## Question 2: Say we select 10 women at random from the study population. What is the probability that exactly four of them have a history of prior fracture?
+
+Prior fracture is a binomial process. First, the probability of prior fracture is the same for every woman. Second, the prior fracture history of one woman is not related to any other women. 
+
+The history of prior fracture is given as $126 / 500 = 0.2520$. In addition, we have selected 10 women. These two pieces of information give use out parameters, $p$ and $n$, respectively.
+
+Let us visualise this problem.
+
+```{r echo=FALSE}
+SUCCESS.B <- c(0:10)
+PROBABILITY.B <- dbinom(0:10, 10, 0.2520)
+barplot(height = PROBABILITY.B,
+        names = SUCCESS.B,
+        col = c(rep("grey", times = 4), "red", rep("grey", times = 7)),
+        ylim = c(0, 0.3),
+        ylab = "Probability",
+        xlab = "Number with Prior Fracture History",
+        main = "Probability Distribution (Bin(10, 0.2520))")
+```
+
+Finally, to calculate the probability, we can use the probability expression $P(X = x) = C\binom{n}{x}p^x(1-p)^{(n-x)}$.
+```{r}
+P <- 126/500; N <- 10; X <- 4
+choose(N, X) * P ^ X * (1-P) ^ (N-X)
+```
+
+Another way to calculate this is to use the `dbinom` function, which gives the *density* or $P(X = x)$.
+```{r}
+dbinom(4, 10, 0.2520) # success, all trial, probability
+```
+
+## Question 3: What is the probability that exactly five out of 10 have a prior fracture history?
+
+Let's visualise the problem.
+
+```{r echo=FALSE}
+barplot(height = PROBABILITY.B,
+        names = SUCCESS.B,
+        col = c(rep("grey", times = 5), "red", rep("grey", times = 6)),
+        ylim = c(0, 0.3),
+        ylab = "Probability",
+        xlab = "Number with Prior Fracture History",
+        main = "Probability Distribution (Bin(10, 0.2520))")
+```
+
+To solve, 
+```{r}
+dbinom(5, 10, 0.2520)
+```
+
+## Question 4: What is the probability that fewer than three out of 10 have a prior history of fracture?
+```{r echo=FALSE}
+barplot(height = PROBABILITY.B,
+        names = SUCCESS.B,
+        col = c(rep("red", times = 3), rep("grey", times = 8)),
+        ylim = c(0, 0.3),
+        ylab = "Probability",
+        xlab = "Number with Prior Fracture History",
+        main = "Probability Distribution (Bin(10, 0.2520))")
+```
+
+We can solve this problem a number of ways. First, we can summate using brute force:
+```{r}
+dbinom(0, 10, 0.2520) + dbinom(1, 10, 0.2520) + dbinom(2, 10, 0.2520)
+```
+
+Second, we can use the `sum` function with a sequence operator:
+```{r}
+sum(dbinom(0:2, 10, 0.2520))
+```
+
+Third, we can use the `pbinom' function, which gives the *distribution function* or $P(X \le x)$.
+```{r}
+pbinom(2, 10, 0.2520)
+```
+
+## Question 5: What is the probability that two out of fourteen randomly selected women have a prior history of fracture?
+
+-----
+
+# Poisson Distribution
+
+## Question 6: What is the probability that exactly four randomly selected women have a prior fracture?
+
+In this question, we can assume that the events are distributed as a Poisson process and with parameter $\lambda = 0.2520$. 
+
+Let us visualise this problem.
+
+```{r echo=FALSE}
+SUCCESS.P <- c(0:10)
+PROBABILITY.P <- dpois(0:10, 0.2520)
+barplot(height = PROBABILITY.P,
+        names = SUCCESS.P,
+        col = c(rep("grey", times = 4), "red", rep("grey", times = 7)),
+        ylim = c(0, 0.8),
+        ylab = "Probability",
+        xlab = "Number with Prior Fracture History",
+        main = "Probability Distribution (Pois(0.2520))")
+```
+
+The probability is calculated as $P(X=x) = e^{-\lambda} \lambda^x / x!$. In this problem, $x = 4$.
+```{r}
+X <- 4; LAMBDA <- 0.2520
+exp(-LAMBDA) * LAMBDA ^ X / factorial(X)
+```
+
+Similar to the binomial density function, `dpois` provides a Poisson density function:
+```{r}
+dpois(4, 0.2520)
+```
+
+## Question 7: What is the probability that fewer than three randomly selected women have a prior fracture?
+```{r echo=FALSE}
+barplot(height = PROBABILITY.P,
+        names = SUCCESS.P,
+        col = c(rep("red", times = 3), rep("grey", times = 8)),
+        ylim = c(0, 0.8),
+        ylab = "Probability",
+        xlab = "Number with Prior Fracture History",
+        main = "Probability Distribution (Pois(0.2520))")
+```
+
+```{r}
+dpois(0, 0.2520) + dpois(1, 0.2520) + dpois(2, 0.2520)
+sum(dpois(0:2, 0.2520))
+ppois(2, 0.2520)
+```
+
+## Question 8: What is the probability that fourteen randomly selected women have a prior history of fracture?
+
+# THE END
+
+
+
+
+
+
