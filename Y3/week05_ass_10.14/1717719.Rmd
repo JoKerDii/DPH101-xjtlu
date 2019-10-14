@@ -1,0 +1,73 @@
+---
+title: '1717719'
+author: "dizhen"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Answers:
+
+1.  $C\binom{17}{14} \times (0.8)^{14} \times (1-0.8)^{17-14} = 0.2393$
+
+```{r}
+P <- 0.8; N <- 17; X <- 14
+choose(N, X) * P ^ X * (1-P) ^ (N-X)
+```
+```{r include=FALSE}
+dbinom(14, 17, 0.8)
+```
+
+
+2.  $C\binom{17}{14} \times (0.8)^{14} \times (1-0.8)^{17-14} + C\binom{17}{15} \times (0.8)^{15} \times (1-0.8)^{17-15} + C\binom{17}{16} \times (0.8)^{16} \times (1-0.8)^{17-16} + C\binom{17}{17} \times (0.8)^{17} \times (1-0.8)^{17-17} = 0.5489$
+
+```{r}
+dbinom(14, 17, 0.8) + dbinom(15, 17, 0.8) + dbinom(16, 17, 0.8) + dbinom(17, 17, 0.8)
+```
+
+```{r include=FALSE}
+sum(dbinom(14:17, 17, 0.8))
+```
+
+
+3. $1 - (C\binom{17}{14} \times (0.8)^{14} \times (1-0.8)^{17-14} + C\binom{17}{15} \times (0.8)^{15} \times (1-0.8)^{17-15} + C\binom{17}{16} \times (0.8)^{16} \times (1-0.8)^{17-16} + C\binom{17}{17} \times (0.8)^{17} \times (1-0.8)^{17-17}) = 1- 0.5489 = 0.4511$
+
+```{r include=FALSE}
+1 - 0.5489
+```
+
+```{r}
+sum(dbinom(1:13, 17, 0.8))
+```
+```{r include=FALSE}
+pbinom(13, 17, 0.8)
+```
+
+4. $P(X=x) = e^{-210} \times 210^{17} / 17! = 5.3066e-67$
+
+```{r}
+X <- 17; LAMBDA <- 210
+exp(-LAMBDA) * LAMBDA ^ X / factorial(X)
+```
+
+```{r include=FALSE}
+dpois(17, 210)
+```
+
+
+5. $P(X=x) = e^{-30} \times 30^{17} / 17! = 0.0034$
+
+```{r include=FALSE}
+X <- 17; LAMBDA <- 210/7
+exp(-LAMBDA) * LAMBDA ^ X / factorial(X)
+```
+
+```{r}
+dpois(17, 30)
+```
+
+## THE END
