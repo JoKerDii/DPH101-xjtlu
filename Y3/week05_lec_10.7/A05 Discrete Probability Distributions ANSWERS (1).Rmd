@@ -1,0 +1,129 @@
+---
+title: "DPH101/ENV203 Assignment Discrete Probability Distributions ANSWERS"
+author: "Elmer V Villanueva"
+date: "October 14, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. Find $P(X=14)$ when $n=17$ and $p=0.80$.
+
+$P(X) \sim Bin(p=0.80, n=17)$. Visualise the problem.
+```{r}
+k <- 0:17
+barplot(dbinom(x=k, size=17, prob=0.8), 
+        names.arg = k,
+        ylim = c(0, 0.25),
+        main = "Binomial Distribution (p=0.80, n=17)",
+        xlab = "Successes",
+        ylab = "Probability",
+        col = c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,"red",
+                NA,NA,NA))
+```
+
+Calculate the probability.
+```{r}
+dbinom(x=14, size=17, prob=0.8)
+```
+
+$P(X=14) = 0.2392$.
+
+-----
+     
+2. Find $P(X \geq 14)$ when $n=17$ and $p=0.80$.
+
+$P(X) \sim Bin(p=0.80, n=17)$. Visualise the problem.
+```{r}
+k <- 0:17
+barplot(dbinom(x=k, size=17, prob=0.8), 
+        names.arg = k,
+        ylim = c(0, 0.25),
+        main = "Binomial Distribution (p=0.80, n=17)",
+        xlab = "Successes",
+        ylab = "Probability",
+        col = c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,"red",
+                "red","red","red"))
+```
+
+Calculate the probability.
+```{r}
+pbinom(q=13, size=17, prob=0.8, lower.tail=FALSE)
+```
+
+$P(X \geq 14) = 0.5489$.
+
+-----
+
+3. $P(X < 14)$ when $n=17$ and $p=0.80$.
+
+$P(X) \sim Bin(p=0.80, n=17)$. Visualise the problem.
+```{r}
+k <- 0:17
+barplot(dbinom(x=k, size=17, prob=0.8), 
+        names.arg = k,
+        ylim = c(0, 0.25),
+        main = "Binomial Distribution (p=0.80, n=17)",
+        xlab = "Successes",
+        ylab = "Probability",
+        col = c("red","red","red","red","red","red","red",
+                "red","red","red","red","red","red","red",
+                NA,NA,NA,NA))
+```
+
+Calculate the probability.
+```{r}
+pbinom(q=13, size=17, prob=0.8, lower.tail=TRUE)
+```
+
+$P(X < 14) = 0.4511$.
+
+-----
+
+4. Find $P(X = 17)$ when $\lambda = 21$.
+
+$P(X) \sim Pois(\lambda=210)$. Visualise the problem.
+```{r}
+k <- 14:23
+barplot(dpois(x=k, lambda=210), 
+        names.arg = k,
+        main = expression(paste("Poisson Distribution (",lambda,"=210)")),
+        xlab = "Count",
+        ylab = "Probability",
+        col = c(NA,NA,NA,NA,"red",NA,NA,NA,NA,NA))
+```
+
+Calculate the probability.
+```{r}
+dpois(x=17, lambda=210)
+```
+
+$P(X = 17) = 5.307 \times 10^{-67}$.
+
+-----
+
+5. Find $P(X = 17)$ when $\lambda = 30$.
+
+$P(X) \sim Pois(\lambda=30)$. Visualise the problem.
+```{r}
+# Draw the distribution
+k <- 14:23
+barplot(dpois(x=k, lambda=30), 
+        names.arg = k,
+        main = expression(paste("Poisson Distribution (",lambda,"=30)")),
+        xlab = "Count",
+        ylab = "Probability",
+        col = c(NA,NA,NA,NA,"red",NA,NA,NA,NA,NA))
+```
+
+Calculate the probability.
+```{r}
+dpois(x=17, lambda=30)
+```
+
+$P(X = 17) = 0.0034$.
+
+
+# THE END
