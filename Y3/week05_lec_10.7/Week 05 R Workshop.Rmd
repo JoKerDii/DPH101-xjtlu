@@ -17,12 +17,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # New functions and packages
-- `choose()`
+- `choose()`  c(n x)    combination
 - `sum()`
 - `dbinom()`  calculate P(probability) of x
 - `pbinom()`  calculate F(cumulative probability) of x
-- `dpois()`
-- `ppois()`
+- `dpois()`  calculate P(probability) of x
+- `ppois()`  calculate F(cumulative probability) of x
 
 # Set your working directory
 ```{r}
