@@ -1,0 +1,109 @@
+---
+title: "Week 10 R Lecture"
+author: "Elmer V Villanueva"
+date: "11/11/2019"
+output: html_document
+---
+
+---
+# Comment
+# setwd("D:/Dropbox/00 - Working Folder/Teaching/DPH101/2019-2020/Week 10 Testing a Single Parameter/R10 R Workshop")
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# New functions
+- `t.test()`
+
+# Set your working directory
+```{r}
+setwd("D:/git/DPH101-xjtlu/Y3/week09_lec_11.11")
+getwd()
+```
+
+# One-sample t-test
+Enter the tapeworm data
+```{r}
+TAPE.1 <- c(14, 9, 18, 26, 12, 0, 10, 4, 8, 21, 28, 24, 24, 2, 3, 14, 9)
+```
+
+Visualise your data
+```{r}
+hist(TAPE.1,
+     xlab = "Lung Transit Time (Hours)",
+     main = "Duration of Skin Penetration to Lung Appearance \n of Hymenolepis muris")
+```
+
+Summarise your data
+```{r}
+summary(TAPE.1)
+```
+
+Perform a one-sample t-test. Assume $\mu = 15$ and $\alpha = 0.01$.
+```{r}
+t.test(TAPE.1, 
+       mu = 15,
+       alternative = c("two.sided"),
+       conf.level = 0.99)
+```
+
+# Independent samples t-test with equal variance
+Enter, visualise and summarise the second set of data
+```{r}
+TAPE.2 <- c(19, 13, 22, 31, 17, 5, 25, 32, 29, 29, 7, 9)
+hist(TAPE.2,
+     xlab = "Lung Transit Time (Hours)",
+     main = "Duration of Skin Penetration to Lung Appearance \n of the Second Sample of Hymenolepis muris")
+summary(TAPE.2)
+```
+
+Perform an independent samples t-test with equal variance. Assume $\alpha = 0.05$.
+```{r}
+t.test(TAPE.1, TAPE.2,
+       alternative = c("two.sided"),
+       var.equal = TRUE,
+       conf.level = 0.95)
+```
+
+# Independent samples t-test with unequal variance
+Enter, visualise and summarise the third set of data
+```{r}
+TAPE.3 <- c(91, 13, 22, 31, 17, 5, 25, 32, 29, 29, 7, 9)
+hist(TAPE.3,
+     xlab = "Lung Transit Time (Hours)",
+     main = "Duration of Skin Penetration to Lung Appearance \n of the Third Sample of Hymenolepis muris")
+summary(TAPE.3)
+```
+
+Perform an independent samples t-test with unequal variance. Assume $\alpha = 0.05$.
+```{r}
+t.test(TAPE.1, TAPE.3,
+       alternative = c("two.sided"),
+       var.equal = FALSE,
+       conf.level = 0.95)
+```
+
+# Paired samples t-test 
+Enter, visualise and summarise the data
+```{r}
+TAPE.BEFORE <- c(20.0, 63.3, 96.0, 9.2, 3.1, 50.0, 33.0, 69.0)
+TAPE.AFTER <- c(63.5, 91.5, 59.0, 37.8, 10.1, 19.6, 41.0, 87.8)
+TAPE.DELTA <- TAPE.AFTER - TAPE.BEFORE
+
+hist(TAPE.DELTA,
+     xlab = "Lung Function",
+     main = "Difference in Lung Function Following  \n Infection with Hymenolepis muris")
+summary(TAPE.DELTA)
+```
+
+Perform a paired samples t-test. Assume $\alpha = 0.10$.
+```{r}
+t.test(TAPE.AFTER, TAPE.BEFORE,
+       alternative = c("two.sided"),
+       paired = TRUE,
+       conf.level = 0.90)
+```
+
+# THE END
