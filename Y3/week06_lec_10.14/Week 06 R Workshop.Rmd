@@ -17,10 +17,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # New functions and packages
-- `dnorm()` draw
-- `pnorm()` know cut-pts, calculate prob
+- `dnorm()` probability of x = z
+- `pnorm()` know z-score, calculate prob
   pnorm(q=4.6, mean=3.4, sd=0.6, lower.tail=FALSE)
-- `qnorm()` know prob, calculate cut-pts
+- `qnorm()` know prob, calculate z-score
   qnorm(p=0.1, mean=3.4, sd=0.6, lower.tail=FALSE)
 - `curve()` draw
 - `polygon()` draw
