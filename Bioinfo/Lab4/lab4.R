@@ -1,0 +1,185 @@
+# save.image("Lab4.RData")
+## Methods
+setwd("~/") #the data you need are in the Rrnaseq directory!
+
+# We’ll load some information about the samples we’ll be using from a file
+# that defines this. Basically, with the targets.txt file, we’re telling R
+# how to deal with the 4 samples in the Rrnaseq/data directory that’s 
+# provide for you targets <- read.delim("./Rrnaseq/data/targets.txt", 
+# comment.char = "#") targets
+
+# We’ll use systemPipeR (Backman & Girke, 2016) in our exercise, which is a
+# way to automate specifying parameters for several useful RNA-seq tools, 
+# instead of having to enter the same command for multiple files. We’ll be
+# using HISAT2 for the read-mapping aspect (Langmead et al., 2015), without
+# pre-trimming the reads using Trimmomatic or a similar program (Bolger 
+# et al., 2014). 
+# (https://usegalaxy.org/u/jeremy/p/galaxy-rna-seq-analysis-exercise)
+library(systemPipeR)
+dir.create("results") # create a results directory
+results <- "./results" # defines location where to write results
+# https://ccb.jhu.edu/software/hisat2/manual.shtml#what-is-hisat2
+# We’ll automate the execution of readmapping using HISAT2 by providing a 
+# template file (hisat2.param) into which the samples and filenames in the
+# targets.txt file are interpolated:
+args <- systemArgs(sysma="./Rrnaseq/param/hisat2.param", 
+                   mytargets="./Rrnaseq/data/targets.txt")
+sysargs(args)[1] # check parameters for running 1st sample using HISAT2
+
+# Now let’s align our reads to the TAIR10 chromosome sequences (we are effectively
+# issuing 4 hisat2 commands, each specific for one of the 4 data sets we’re using, 
+# with this single command):
+runCommandline(args=args) #ignore warnings
+
+# let’s see how many of the reads mapped to the TAIR10 genome (the mapping results 
+# are the .bam files in the /results directory).
+read_statsDF <- alignStats(args) # generate alignment statistics
+read_statsDF # display alignment statistics
+
+
+##Visualizing our RNA-seq data
+# We will now examine the quality of these RNA-seq data by looking at the distributions
+# for each data set using boxplots, followed by RPKM normalization and heatmapping
+
+# First we will need to count the number of mapped reads per genomic feature in 
+# which we are interested.
+# Genome features are typically stored in GFF3 files:
+# http://gmod.org/wiki/GFF#GFF3_Annotation_Section
+# We’ll use the easy-to-use makeTxDBFromGFF function of the GenomicFeatures library
+# to store the genome feature information in an object to use for counting the reads
+# mapped to the gene features
+library(GenomicFeatures)
+txdb <- makeTxDbFromGFF(file="./Rrnaseq/data/TAIR10_GFF3_trunc.gff",
+                        format="gff3",
+                        dataSource="TAIR",
+                        organism="Arabidopsis thaliana") # Ignore warnings
+eByg <- exonsBy(txdb, by="gene") # retrieve exon features grouped by genes
+bfl <- BamFileList(outpaths(args), yieldSize=50000, index=character())
+counteByg <- bplapply(bfl, function(x) summarizeOverlaps(eByg, 
+                                                         x, 
+                                                         mode="Union", 
+                                                         ignore.strand=TRUE, 
+                                                         inter.feature=TRUE, 
+                                                         singleEnd=TRUE))
+# Note: for strand-specific RNA-Seq set 'ignore.strand=FALSE' and for paired-end
+# data set 'singleEnd=FALSE'…our data set is not paired-end, so we set the flag
+# as TRUE
+countDFeByg <- sapply(seq(along=counteByg), function(x) assays(counteByg[[x]])$counts) 
+rownames(countDFeByg) <- names(rowRanges(counteByg[[1]]))
+colnames(countDFeByg) <-names(bfl) 
+countDFeByg[1:4,] # display the first four rows of gene counts
+write.table(countDFeByg, 
+            "results/countDFeByg.xls", 
+            col.names=NA, 
+            quote=FALSE, 
+            sep="\t") # store as a table if desired
+
+# Let’s look at the distribution of the number of reads per gene data with:
+boxplot(countDFeByg[,1:4]) # plot columns 1 through 4
+# if you can’t distinguish the upper and lower quartile box boundaries
+boxplot(countDFeByg[,1:4],ylim=c(0,2000)) 
+
+## Background reduction, normalization and summarization
+# Let’s RPKM-normalize out RNA-seq data with a single command:
+rpkmDFeByg <- apply(countDFeByg, 2, function(x) returnRPKM(counts=x,ranges=eByg)) 
+# Here we’re using a function that effectively takes the read counts for each gene 
+# divided by the size of each gene in kilobases to give Reads per Kilobase, and 
+# then scaling this value relative to the total number of reads in the experiment 
+# on a per million read basis. We can also write this to a file if desired:
+write.table(rpkmDFeByg, "results/rpkmDFeByg.xls", col.names=NA, quote=FALSE, sep="\t") # store as a table
+# What does this do to the distribution of the expression levels? Let’s use the 
+# boxplot function again to find out.
+boxplot(rpkmDFeByg)
+boxplot(rpkmDFeByg,ylim=c(0,2000)) # Examine the upper/lower quartiles
+# Hmmm…not really! Keep in mind that we’re looking at a very small slice of the 
+# original sequence data, those reads that map to the first 100kb of each of the 
+# 5 Arabidopsis chromosomes. Some of the chromosomes are 20 Mb or larger, so we 
+# might not expect the distributions to be the same in this somewhat artificial 
+# data set.
+
+# We can assess quality by plotting the “fastq” scores (which are measures of read
+# quality) on per position basis for all of the reads for each of the samples 
+# (note: we could have executed this command at the bottom of page 5, and checked 
+# the quality there…)
+fqlist <- seeFastq(fastq=infile1(args), batchsize=1000, klength=8)
+pdf("./results/fastqReport.pdf", height=18, width=4*length(fqlist))
+seeFastqPlot(fqlist)
+dev.off()
+
+# the idea here is to group samples that have similar expression patterns across 
+# the ~145 or so genes in our particular example data set.
+library(ape)
+d <- cor(rpkmDFeByg, method = "spearman")
+hc <- hclust(dist(1-d))
+plot.phylo(as.phylo(hc), 
+           type="p", 
+           edge.col=4, 
+           edge.width=3, 
+           show.node.label=TRUE, 
+           no.margin=TRUE) # all on one line!
+
+## Identifying differentially expressed genes
+# Here’s a DESeq2 analysis to identify genes with > 2-fold change and a false 
+# discovery rate (FDR) of 10%, or, to be more stringent, of 1% FDR
+library(DESeq2)
+cmp <- readComp(file="./Rrnaseq/data/targets.txt", format="matrix", delim="-")
+# With the above command we’re defining what sort of comparisons to make…
+cmp[[1]] # check we’re comparing AP3 samples to the whole translatome samples
+degseqDF <- run_DESeq2(countDF=countDFeByg, targets=targets, cmp=cmp[[1]], independent=FALSE)
+# We defined the targets (samples)previously, we’re telling DESeq2 (running using
+# systemPipeR’s run_DESeq2 wrapper) to do the comparison(s) as above
+countDFeByg[1:4,] # let’s check first 4 rows of countDFebyg.
+degseqDF[1:4,] # let’s check out the DESeq2 results for the same genes
+# You can see that DESeq2 has computed the fold change (shown as log2 fold change 
+# in the AP3-TRL_logFC column) for each gene, and has provided a p-value and FDR 
+# (false discovery rate) that we can use to filter genes for further analysis – 
+# not all genes are significantly differentially expressed.
+
+DEG_list2 <- filterDEGs(degDF=degseqDF, filter=c(Fold=2, FDR=10)) 
+# limit output to genes only showing 2-fold change up or down, and having a
+# 10% FDR or better… you’ll get a nice graph with the number of genes “up” 
+# and “down”
+nrow(countDFeByg) # 145 (total # of genes)
+# number of genes in original data set, incl. genes with no counts…the nrow
+# function returns the number of rows
+lengths(DEG_list2$UporDown[]) # 49 (pass the test)
+# number with fold-change > 2 and at a 10% false discovery rate; note “s” on
+# lengths function
+
+# Now, let’s take the “top hits” and plot them in a heatmap.
+DEG_list3 <- filterDEGs(degDF=degseqDF, filter=c(Fold=2, FDR=1)) 
+# first we have to create a new list…
+nrow(countDFeByg) # total 145 genes
+lengths(DEG_list3$UporDown[]) # 34 pass the test
+# What row number of the first gene that is differentially expressed in our 
+# original countDFeByg data matrix?
+which(rownames(countDFeByg) == DEG_list3$UporDown$`AP3-TRL`[1])
+
+# Let’s look at the raw expression values for the genes with significant 
+# differential expression
+results.top <- countDFeByg[DEG_list3$UporDown[[1]], ]
+# Generate a subset of the raw read counts of our significant gene rows
+# from the DEG_list3 data object, using the list of the $UporDown IDs
+# to select the row names in the countDFeByg matrix, and then assign them 
+# to a matrix called results.top
+results.top
+
+# Now let’s finally display the expression levels of our significantly 
+# differentially expressed genes in a heatmap.
+heatmap(results.top, Colv=NA, Rowv=NA, col=rev(heat.colors(256)))
+
+# We can also examine the RPKM-normalized expression levels of our top 
+# significant genes
+results_rpkm.top <- rpkmDFeByg[DEG_list3$UporDown[[1]], ]
+heatmap(results_rpkm.top, Colv=NA, Rowv=NA, col=rev(heat.colors(256)))
+
+# Go to http://bar.utoronto.ca/ntools/cgi-bin/ntools_agi_converter.cgi. 
+# Enter the AGI IDs in the box, select From:AGI and To:Gene Alias and 
+# Annotation (click to select these), and click ‘Submit’. 
+# Hint: use > results.top[,0] to retrieve just the AGI IDs (AGI stands for
+# Arabidopsis Genome Initiative, and AGI IDs have the format of At[1-5CM]ddddd,
+# where d can be any digit. These start at At1g01010 and typically increase 
+# by 10 along the chromosome).
+results.top[,0]
+
+
