@@ -1,0 +1,117 @@
+---
+title: "Demo"
+author: "dizhen"
+date: "11/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Performing ANOVA Test in R: Results and Interpretation
+FROM: http://www.analyticsforfun.com/2014/06/performing-anova-test-in-r-results-and.html
+
+## THE DATASET
+My dataset has breast cancer data for 173 countries as it was originally collected by ARC (International Agency for Research on Cancer) in 2002. The dataset also includes several other socio-economic variables about countries, though I am not gonna explore them in this occasion. To obtain the final dataset, I conducted some minor cleaning and added the "continent" variable, through a merge operation. 
+```{r}
+gapCleaned <- read.csv("gapC.csv")
+head(gapCleaned)
+```
+
+
+## DEFINE THE ANOVA MODEL MATHEMATICALLY
+As already mentioned above, I am going to examine the relationship between:
+
+* Continents, which is my explanatory variable --> let’s call it X
+* and New Cases of Breast Cancer, which is my response variable --> let’s call it Y
+
+Mathematically, the relationship can be written like this:
+
+Y ~ X
+
+ANOVA is going to compare means of breast cancer among the seven continents, and check if differences are statistically significant. Here are my null and alternative hypothesis:
+
+* Null Hypothesis: all seven continents means are equal —> there is no relationship between continents and new cases of breast cancer, which we can write as follows:
+
+        H0:  U1 = U2 = U3 = U4 = U5 = U6 = U7
+* Alternative Hypothesis: not all seven continents means are equal —> there is a relationship between continents and new cases of breast cancer:
+
+        H1: not all U are equal
+        
+## PERFORM THE ANOVA TEST WITH R
+
+So, how do we go about testing the means? First of all we can calculate and plot means for each continent, which is pretty easy to do with R (remember, my breast cancer dataset is called "gapCleaned in R):
+
+```{r}
+
+means<- round(tapply(gapCleaned$breastcancer, gapCleaned$continent, mean), digits=2)  
+# note that I round values to just 2 decimal places
+means
+```
+
+```{r}
+# install.packages("gplots")
+library(gplots)  #I load the "gplots" package to plot means
+plotmeans(gapCleaned$breastcancer~gapCleaned$continent, digits=2, ccol="red", mean.labels=T, main="Plot of breast cancer means by continent")
+```
+The above graph shows how breast cancer means change between continents, as well as the number of countries taken into account for calculating the mean of each continent. Cool, it looks like means differ among continents, with Africa presenting the lowest value and West Europe the highest. But… hang on, **is that enough to provide evidence against my null hypothesis**? Not really and we can understand why, through a lovely boxplot:
+
+```{r}
+boxplot(gapCleaned$breastcancer ~ gapCleaned$continent, main="Breast cancer by continent (mean is black dot)", xlab="continents", ylab="new cases per 100,00 residents", col=rainbow(7))
+points(means, col="black", pch=18)
+```
+
+The boxplot shows that means are different (some less, others more).  But it also shows that each continent present a different amount of variation/spread in breast cancer, so that there is much overlap of values between some continents (e.g. Africa&Asia or North America & West Europe). Hence, differences in means could have come about by chance (and we shouldn’t reject the null hypothesis case). **That is where ANOVA comes to help us.**
+
+**The question we are answering with ANOVA is**: are the variations between the continents means due to true differences about the populations means or just due to sampling variability? To answer this question, ANOVA calculates a parameter called [F statistics](https://en.wikipedia.org/wiki/F-statistics), which compares the variation among sample means (among different continents in our case) to the variation within groups (within continents).
+
+F statistics = Variation among sample means / Variation within groups
+
+Through the F statistics we can see if the variation among sample means dominates over the variation within groups, or not. In the first case we will have strong evidence against the null hypothesis (means are all equals), while in the second case we would have little evidence against the null hypothesis.
+
+All right, after this theoretical excursus, it’s time to perform ANOVA on my data and try to interpret results. To call ANOVA with R, I am using the “aov” function:
+
+```{r}
+aov_cont<- aov(gapCleaned$breastcancer ~ gapCleaned$continent)
+summary(aov_cont) # here I see results for my ANOVA test
+```
+
+
+Good, my F value is 40.28, and p-value is very low too. In other words, **the variation of breast cancer means among different continents (numerator) is much larger than the variation of breast cancer within each continents**, and our p-value is less than 0.05 (as suggested by normal scientific standard). Hence we can conclude that for our confidence interval we accept the alternative hypothesis H1 that there is a significant relationship between continents and breast cancer.
+
+But we are not done yet… :(
+
+What I know at this point (thanks to ANOVA), is that NOT ALL THE MEANS ARE EQUAL. However my categorical variable "continents" has more than two levels (actually it has 7), and it might be that it’s just one continent that is not equal to the others. **ANOVA doesn't tell me which groups (continents) are different from the others**. In this sense we will have to see **each pair** of continents to appreciate significant differences.
+
+To determine which groups are different from the others I need to conduct a POST HOC TEST or a post hoc pair comparison (note we can’t perform multiple anova tests one for each pair, as this would increase our error, see [family wise error rate](https://en.wikipedia.org/wiki/Familywise_error_rate) for more details) which is designed to evaluate pair means. There are many post hoc tests available for analysis of variance and in my case I will use the Tukey post hoc test, calling with R the function “TukeyHSD” as follows:
+
+```{r}
+tuk<- TukeyHSD(aov_cont)
+tuk
+```
+
+## RESULTS & INTERPRETATIONS
+
+From the table above (looking at “diff” and “p adj” columns) I can see which continents have **significant differences** in breast cancer from others. For example I can conclude that:
+
+* **there is no significant difference** in breast cancer new cases between Asia and Africa ( p =0.99 > 0.05), as well as between West Europe and North America (p=0.99) or Oceania and Latin America (p=0.72), etc.
+
+* **THERE IS A SIGNIFICANT DIFFERENCE** in breast cancer new cases between East Europe and Africa (p= 0.00) as well as between Latin America and Africa (p=0.005) or West Europe and Oceania (p=0.00)
+
+Finally, I can also visualize continent pairs and analyse significant differences by plotting the the “tuk” object in R (sorry the y axis is not displayed properly). Significant differences are the ones which not cross the zero value.
+
+```{r}
+plot (tuk)
+```
+
+## Conclusions
+
+Despite the interesting findings obtained from the ANOVA test, which show a potential relationship between some continents/countries (most developed ones in particular) and breast cancer incidence, I am not going to draw any concrete conclusion from the data. This because the model I've built (Y~X) misses considering some potential [confounding variables](https://en.wikipedia.org/wiki/Confounding) such as for example:
+
+* access to health care and breast cancer screenings: Africa and Asia might have many women with breat cancer, but they might be undiagnosed due to lack of access to diagnostic and treatment services. On the other hand, it looks like there are more women in developed countries with breast cancer, but it may just be because these countries offer a better access to health services; 
+
+* life expectancy: age at diagnosis is another variable to take into consideration, since life expectancy is far lower in less developed countries like Africa and Asia. Age is an important component in breast cancer causes (women over 50 are more likely to get breast cancer), and it might be that because of higher life expectancy, most developed countries present more cases than less developed ones.
+
+While it is impossible with such a "poor" model to draw concrete results from my data analysis, I guess we should take this post as a "**learning exercise**" that shows the main steps for performing an ANOVA test with R, and the logic behind it. I hope you found it helpful and please add your own considerations, critiques, comments below.
+

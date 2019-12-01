@@ -1,0 +1,187 @@
+---
+title: "Week 12 R Lecture"
+author: "Elmer V Villanueva"
+date: "11/25/2019"
+output: html_document
+---
+
+---
+# Comment
+# setwd("D:/Dropbox/00 - Working Folder/Teaching/DPH101/2019-2020/Week 12 Analysis of Variance/L12 Analysis of Variance")
+# info: http://www.sthda.com/english/wiki/two-way-anova-test-in-r
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("D:/git/DPH101-xjtlu/Y3/week12_lec_11.25")
+```
+
+# Oneway ANOVA
+Let's enter the data.
+```{r}
+HAEM.CONTROL <- c(38, 40, 32, 36, 40, 40, 38, 40, 38, 40, 36, 40, 40, 35, 45)
+HAEM.DUSHU <- c(56, 60, 50, 50, 50, 35, 40, 40, 55, 35, rep(c(NA), times = 5))
+HAEM.JINJI <- c(40, 42, 38, 46, 36, rep(c(NA), times = 10))
+HAEM.DATA.1 <- data.frame(HAEM.CONTROL, HAEM.DUSHU, HAEM.JINJI)
+str(HAEM.DATA.1)
+head(HAEM.DATA.1)
+View(HAEM.DATA.1)
+```
+
+Let's enter the data in another way.
+```{r}
+HAEMATOCRIT <- c(38, 40, 32, 36, 40, 40, 38, 40, 38, 40, 36, 40, 40, 35, 45,
+                 56, 60, 50, 50, 50, 35, 40, 40, 55, 35,
+                 40, 42, 38, 46, 36)
+LOCATION <- factor(c(rep(0, times = 15),
+                     rep(1, times = 10),
+                     rep(2, times = 5)),
+                   labels = c("Control", "Dushu", "Jinji"))
+HAEM.DATA.2 <- data.frame(HAEMATOCRIT, LOCATION)
+str(HAEM.DATA.2)
+head(HAEM.DATA.2)
+View(HAEM.DATA.2)
+```
+
+Draw pictures. This graph is incomplete.
+```{r}
+boxplot(HAEMATOCRIT ~ LOCATION, 
+        data = HAEM.DATA.2)
+```
+
+Perform the analysis.
+```{r}
+HAEMATOCRIT.AOV <- aov(HAEMATOCRIT ~ LOCATION, 
+                       data = HAEM.DATA.2)
+summary(HAEMATOCRIT.AOV)
+```
+
+Where is the difference?
+```{r}
+with(data = HAEM.DATA.2,
+     t.test(HAEMATOCRIT[LOCATION == "Control"], HAEMATOCRIT[LOCATION == "Dushu"]))
+with(data = HAEM.DATA.2,
+     t.test(HAEMATOCRIT[LOCATION == "Control"], HAEMATOCRIT[LOCATION == "Jinji"]))
+with(data = HAEM.DATA.2,
+     t.test(HAEMATOCRIT[LOCATION == "Dushu"], HAEMATOCRIT[LOCATION == "Jinji"]))
+```
+
+Control for multiple looks.
+```{r}
+TukeyHSD(x=HAEMATOCRIT.AOV)
+```
+
+# Twoway ANOVA: Randomised complete block design
+Let's enter the data in long form.
+```{r}
+WEIGHT <- c(70, 80, 90, 100, 110,
+            90, 90, 90, 90, 120,
+            100, 100, 120, 120, 140)
+DRUG <- factor(c(rep(0, times = 5), 
+                 rep(1, times = 5), 
+                 rep(2, times = 5)),
+               labels = c("Control", "Drug A", "Drug B"))
+AGE <- factor(c(rep(c(0:4), times = 3)),
+              labels = c("<20", "20-29", "30-39", "40-49", "50+"),
+              ordered = TRUE)
+CHICKEN <- data.frame(WEIGHT, DRUG, AGE)
+str(CHICKEN)
+head(CHICKEN)
+View(CHICKEN)
+```
+
+Draw pictures
+```{r}
+boxplot(WEIGHT ~ DRUG,
+        data = CHICKEN)
+```
+
+Perform the analysis
+```{r}
+CHICKEN.AOV <- aov(WEIGHT ~ DRUG + AGE, 
+                       data = CHICKEN)
+summary(CHICKEN.AOV)
+```
+
+```{r}
+op <- par(mar = c(4, 4, 0.1, 0.1))
+plot(WEIGHT ~ as.numeric(AGE), 
+     data = CHICKEN, 
+     type = "n", 
+     axes = F, 
+     xlab = "", 
+     ylab = "")
+with(subset(CHICKEN, DRUG == "Control"), 
+     points(WEIGHT ~ as.numeric(AGE), 
+            pch = 21, 
+            type = "o", 
+            lwd = 1))
+with(subset(CHICKEN, DRUG == "Drug A"), 
+     points(WEIGHT ~ as.numeric(AGE), 
+            pch = 16, 
+            type = "o", 
+            lwd = 1))
+with(subset(CHICKEN, DRUG == "Drug B"), 
+     points(WEIGHT ~ as.numeric(AGE), 
+            pch = 5, 
+            type = "o", 
+            lwd = 1, 
+            lty = 2))
+axis(1, cex.axis = 0.8)
+mtext(text = "Age", 
+      side = 1, 
+      line = 3)
+axis(2, cex.axis = 0.8, las = 1)
+mtext(text = "Weight", 
+      side = 2, 
+      line = 3)
+legend("topleft", 
+       leg = c("Control", "Drug A", "Drug B"), 
+       lty = 0, 
+       pch = c(21, 16, 5), 
+       bty = "n", 
+       cex = 0.7)
+box(bty = "l")
+```
+
+# Twoway ANOVA: Factorial design
+Let's enter the data.
+```{r}
+SIZE <- c(20, 25, 22, 27, 21, 25, 30, 29, 28, 30,
+          24, 28, 24, 25, 30, 28, 31, 26, 29, 32,
+          30, 35, 30, 35, 36, 30, 29, 31, 30, 30,
+          39, 42, 36, 42, 40, 40, 45, 50, 45, 60,
+          31, 30, 40, 35, 30, 32, 35, 30, 40, 30,
+          41, 46, 40, 40, 35, 42, 50, 40, 55, 45,
+          20, 21, 20, 20, 19, 23, 25, 28, 30, 31,
+          24, 25, 30, 26, 23, 29, 30, 28, 27, 30)
+WHEAT <- factor(c(rep(0, times = 20), rep(1, times=20),
+                  rep(2, times = 20), rep(3, times = 20)),
+                labels = c("T. aestivum", "T. compactum",
+                           "T. dicoccon", "T. urartu"))
+d1 <- c(0:3); d2 <- c(rep(d1, each = 5))
+DOSE <- factor(c(rep(d2, times = 4)),
+               labels = c("Low", "Medium", "High", "Very High"),
+               ordered = TRUE)
+SELENIUM <- data.frame(SIZE, WHEAT, DOSE)
+str(SELENIUM)
+head(SELENIUM)
+View(SELENIUM)
+```
+
+```{r}
+boxplot(SIZE ~ WHEAT * DOSE,
+        data = SELENIUM)
+```
+
+Perform the analysis
+```{r}
+SELENIUM.AOV <- aov(SIZE ~ WHEAT * DOSE,
+                    data = SELENIUM)
+summary(SELENIUM.AOV)
+```
+
+
