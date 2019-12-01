@@ -1,0 +1,149 @@
+---
+title: "Week 10 R Workshop"
+author: "Elmer V Villanueva"
+date: "November 20, 2019"
+output: html_document
+---
+
+---
+# Comment
+# setwd("D:/Dropbox/00 - Working Folder/Teaching/DPH101/2019-2020/Week 11 Testing Two Parameters/R11 R Workshop")
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this session, we will learn about general procedures used to compare the means of two groups. 
+
+# Set your working directory
+```{r echo=TRUE}
+setwd("D:/git/DPH101-xjtlu/Y3/week11_lec_11.18")
+```
+
+# Download the data files from ICE onto your working directory
+You will need to download and unzip the data file package from ICE. It contains four data files in CSV format.
+
+# Independent-samples Student's t-test with pooled variance
+Ward and Quinn (1988) investigated differences in the fecundity (as measured by egg production) of a predatory intertidal gastropod (*Lepsiella vinosa*) in two different intertidal zones (mussel zone and the higher littorinid zone). We wish to test the null hypothesis that the population mean egg production is the same for both littorinid and mussel zones.
+
+1. Import the data.
+```{r, echo=TRUE}
+ward <- read.csv("ward.csv")
+str(ward)
+head(ward)
+```
+
+2. Assess assumption of normality and homogeneity of variance.
+```{r, echo=TRUE}
+boxplot(EGGS ~ ZONE, data = ward)
+with(ward, rbind(MEAN<-tapply(EGGS,ZONE,mean), 
+                 VAR<-tapply(EGGS,ZONE,var)))
+```
+
+**Conclusion.** There was no evidence of non-normality (boxplots not grossly asymmetrical) or unequal variance (boxplots very similar size and variances very similar). Hence, the simple, studentized (pooled variances) t-test is likely to be reliable.
+
+3. Perform an independent-samples t-test with pooled variance.
+```{r, echo=TRUE}
+t.test(EGGS ~ ZONE, data = ward, 
+       var.equal = T)
+```
+
+**Conclusions.** Reject the null hypothesis. Egg production by predatory gastropods was significantly greater (t~77~ = -5.39, P < 0.001) in mussel zones than littorinid zones on rocky intertidal shores.
+
+# Independent-samples Student's t-test with Satterthwaite's adjustment for unpooled variance 
+Furness and Bryant (1996) measured the metabolic rates of eight male and six female breeding northern fulmars and were interesting in testing the null hypothesis that there was no difference in metabolic rate between the sexes. 
+
+1. Import the data.
+```{r, echo=TRUE}
+furness <- read.csv("furness.csv")
+str(furness)
+head(furness)
+```
+
+2. Assess the assumptions of normality and homogeneity of variance.
+```{r, echo=TRUE}
+boxplot(METRATE ~ SEX, data = furness)
+with(furness, rbind(MEAN = tapply(METRATE, SEX, mean), 
+                    VAR = tapply(METRATE, SEX, var)))
+```
+
+**Conclusions.** Whilst there is no evidence of non-normality (boxplots not grossly asymmetrical), variances are a little unequal (although perhaps not grossly unequal - one of the boxplots is not more than three times smaller than the other). Hence, a separate variances t-test is more appropriate than a pooled variances t-test.
+
+3. Perform an independent-samples t-test with Satterthwaite's adjustment.
+```{r, echo=TRUE}
+t.test(METRATE ~ SEX, data = furness, 
+       var.equal = FALSE)
+```
+
+**Conclusions.** Do not reject the null hypothesis. Metabolic rate of male breeding northern fulmars was not found to differ significantly (t = -0.773, df = 10.468, P = 0.457) from that of females.
+
+# Paired Student's t-test
+To investigate the effects of lighting conditions on the orb-spinning spider webs Elgar et al. (1996) measured the horizontal (width) and vertical (height) dimensions of the webs made by 17 spiders under light and dim conditions. Accepting that the webs of individual spiders vary considerably, Elgar et al. (1996) employed a paired design in which each individual spider effectively acts as its own control.
+
+1. Import the data.
+```{r, echo=TRUE}
+elgar <- read.csv("elgar.csv")
+str(elgar)
+head(elgar)
+```
+
+2. Assess the assumption of norrmality
+```{r, echo=TRUE}
+with(elgar, boxplot(HORIZLIG - HORIZDIM))
+with(elgar, boxplot(VERTLIGH - + VERTDIM))
+```
+
+**Conclusions.** There is no evidence of non-normality for either the difference in widths or
+heights of webs under light and dim ambient conditions. Therefore paired t-tests are likely to be
+reliable tests of the hypotheses that the mean web dimensional differences are equal to zero.
+
+3. Perform two separate paired t-tests to test the test the respective null hypotheses.
+
+3.1. No effect of lighting on web width
+```{r}
+with(elgar, t.test(HORIZLIG, HORIZDIM, paired = T))
+```
+
+3.2. No effect of lighting on web height
+
+```{r}
+with(elgar, t.test(VERTLIGH, VERTDIM, paired = T))
+```
+
+**Conclusions.** Orb-spinning spider webs were found to be significantly wider (t = 2.148,
+df = 16, P = 0.047) under dim lighting conditions than light conditions, yet were not found
+to differ (t = 0.965, df = 16, P = 0.349) in height.
+
+# Non-parametric Mann-Whitney U (also known as Wilcoxon rank sum) test
+Sokal and Rohlf (1997) presented a dataset comprising the lengths of cheliceral bases
+(in ?m) from two samples of chigger (*Trombicula lipovskyi*) nymphs. 
+
+1. Import the data.
+
+```{r}
+nymphs <- read.csv("nymphs.csv")
+str(nymphs)
+head(nymphs)
+```
+
+2. Assess the assumptions of normality and homogeneity of variance.
+```{r}
+boxplot(LENGTH ~ SAMPLE, data = nymphs)
+with(nymphs, rbind(MEAN = tapply(LENGTH, SAMPLE, mean),
+                   VAR = tapply(LENGTH, SAMPLE, var)))
+```
+
+**Conclusions.** Whilst there is no evidence of unequal variance, there is some (possible)
+evidence of non-normality (boxplots slightly asymmetrical).
+
+3. Perform a Mann-Whitney U test (otehrwise known as the Wilcoxon rank sum test) to investigate the null hypothesis that the mean length of cheliceral bases is the same for the two samples of nymphs of chigger (*Trombicular lipovskyi*).
+```{r}
+wilcox.test(LENGTH ~ SAMPLE, data = nymphs)
+```
+
+**Conclusions.** Reject the null hypothesis. The length of the cheliceral base is significantly longer in nymphs from sample 1 (W = 123.5, df = 24, P = 0.023) than those from sample 2.
+
+# THE END
+
+
