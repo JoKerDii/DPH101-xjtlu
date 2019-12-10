@@ -1,0 +1,36 @@
+---
+title: "Cox proportional hazards model"
+author: "dizhen"
+date: "2019.12.10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+g <- read.csv(file = "C:/Users/dizhe/Downloads/simulated HF mort data for GMPH (1K) final.csv", header=TRUE, sep=',')
+library(survival)
+```
+```{r}
+cox <- coxph(Surv(fu_time,death) ~ age,data=g)
+summary(cox)
+```
+```{r}
+# install.packages("survminer")
+library(survminer)
+```
+```{r}
+cox <- coxph(Surv(fu_time, death) ~ ethnicgroup, data = g) # take variables straight from g
+summary(cox)
+```
+you'll get just one coefficient for ethnicgroup. This is because unless you tell it otherwise, R will assume that all your variables are continuous. Ethnicity is very obviously not a continuous variable, but R doesn't know that unless you tell it!
+```{r}
+ethnicgroup <- factor(g[,"ethnicgroup"]) # can also use “as.factor” rather than “factor”
+fu_time <- g[,"fu_time"]
+death <- g[,"death"]
+
+cox <- coxph(Surv(fu_time, death) ~ ethnicgroup)
+summary(cox)
+```
+

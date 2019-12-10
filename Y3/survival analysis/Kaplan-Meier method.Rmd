@@ -1,0 +1,112 @@
+---
+title: "Kaplan-Meier method"
+author: "dizhen"
+date: "2019.12.10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Survival analysis
+
+survival analysis can be used to explore the relation between patient factors of interest and the time to any binary event. 
+
+
+Survival analysis deals with the time to a specific event that can have one of only two possible outcomes. We need to conduct studies over time, recording exactly when an event takes place, to observe how long it takes for interesting events to happen and what factors such as patient characteristics affect when the even happens.
+
+
+## Km plot and log-rank test
+
+kaplan-meier plot shows the survival probability over time since surgery
+
+The basic idea underlying Kaplan-Meier tables comes into play here: the probability of surviving past day t is simply the probability of surviving past day t-1 times the proportion of patients that survive on day t
+
+
+```{r}
+g <- read.csv(file = "C:/Users/dizhe/Downloads/simulated HF mort data for GMPH (1K) final.csv", header=TRUE, sep=',')
+dim(g)
+head(g)
+```
+
+```{r}
+# install.packages("survival")
+# install.packages("ggplot2")
+
+library(survival) # this is the cornerstone command for survival analysis in R
+library(ggplot2) # newer package that does nice plots
+```
+
+
+```{r}
+gender <- as.factor(g[,"gender"]) # R calls categorical variables factors
+fu_time <- g[,"fu_time"] # continuous variable (numeric) 
+death <- g[,"death"] # binary variable (numeric) 
+```
+
+To run an overall Kaplan-Meier plot
+```{r}
+km_fit <- survfit(Surv(fu_time, death) ~ 1)
+plot(km_fit)
+```
+"Survfit" fits a simple survival model that depends only on gender in terms of predictors: in this case there aren't any predictors, so the model just has the intercept, denoted by "1". The two arguments used by "Surv"" are the follow-up time for each patient and whether they died. In our data, death=1 for people who had died by the end of the follow-up period, and death=0 for those still alive at that time. Technically, those people still alive are censored, because we don't know when they'll die (of course everyone does at some point). 
+ 
+The survfit() function produces the Kaplan-Meier estimates of the probability of survival over time that are used by "plot" to produce the Kaplan-Meier curve above.
+
+```{r}
+summary(km_fit, times = c(1:7,30,60,90*(1:10))) 
+```
+
+The "times" argument gives us control over what time periods we want to see. The above code asks for output every day for the first week, then at 30, 60 and 90 days, and then every 90 days thereafter
+Whereas all but about 1% make it past the first day, at 900 days after a first emergency admission for heart failure, the probability of surviving is just 38%.
+
+Now let's extend this by splitting the curve by gender:
+
+```{r}
+km_gender_fit <- survfit(Surv(fu_time, death) ~ gender) 
+
+plot(km_gender_fit)
+```
+
+To compare survival by gender, we can run a logrank test. There are many ways to do this because of different versions for different scenarios, e.g. particular types of censored data, but we'll just give the standard one:
+
+```{r}
+survdiff(Surv(fu_time, death) ~ gender, rho=0) 
+```
+
+
+With rho = 0, which is the default so we don't need to write this bit, it yields the log-rank or Mantel-Haenszel test. When you run the above, you should get this output:
+
+### Results of the interpretation of log-rank test for gender
+
+The log-rank test compares the survival time by gender. It's the most popular method of comparing the survival of patient groups that takes the whole follow-up period into account. Its big advantage is that it you don't need to know anything about the shape of the survival curve or the distribution of survival times. It's based on a comparison of the observed numbers of deaths and the numbers of deaths expected if in fact there were no difference in the probability of death between the groups (genders in this case) and uses a chi-squared test.
+
+The resulting p-value that you should have got is high, at 0.8. There's therefore no good evidence of a difference between the genders in their survival times.
+
+
+## Another Km plot and log-rank test
+
+To compare the survival times for patients 65 and over with those under 65
+
+```{r}
+age_65plus <- ifelse(g[,"age"]>=65,1,0) # dichotomise age
+table(age_65plus, exclude = NULL) # inspect the numbers - always a good idea
+age_65plus
+```
+
+```{r}
+age <- g[,'age']
+
+table(age,age_65plus, exclude = NULL) # check - an even better idea...
+age_65plus
+```
+```{r}
+# Now we're happy and can run the test:
+survdiff(Surv(fu_time, death) ~ age_65plus, rho=0)
+```
+
+This time, I got a low p value, one that's way below the conventional 5% threshold, so you'd conclude that survival times do differ by whether you've turned 65. But which group live longest after their hospital admission?
+
+You'd expect the younger group to live longest of course, but you don't know that until you look at the above table. The 115 younger patients (those with age_65plus = 0) had 18 observed deaths, but you would expect 67 under the null hypothesis of no difference in survival times by age group. In contrast, the older group had more deaths than expected under the null, which confirms your instinct that younger patients live significantly (p<0.001, in fact very near zero) longer after hospital admission than older ones do.

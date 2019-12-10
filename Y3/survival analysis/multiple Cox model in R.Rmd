@@ -1,0 +1,28 @@
+---
+title: "multiple Cox model in R"
+author: "dizhen"
+date: "2019.12.10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+g <- read.csv(file = "C:/Users/dizhe/Downloads/simulated HF mort data for GMPH (1K) final.csv", header=TRUE, sep=',')
+library(survival)
+```
+
+```{r}
+age <- g[,'age']
+gender <- g[,'gender']
+copd <- g[,'copd']
+prior_dnas <- g[,'prior_dnas']
+ethnicgroup <- g[,'ethnicgroup']
+fu_time <- g[,'fu_time']
+death <- g[,'death']
+cox <- coxph(Surv(fu_time, death) ~ age + gender + copd + prior_dnas + ethnicgroup)
+
+summary(cox)
+```
+By the way, you may have noticed that "gender1" and "ethnicgroup1" do not appear in the above output. This is because they are the reference categories for their respective variables. By default, R sets the reference category as the lowest value for the variable, which is 1. This happens to correspond to males and to white ethnicity, but you can easily change the reference category. I'll cover how to do that later in the course.

@@ -1,0 +1,87 @@
+---
+title: "non-convergence"
+author: "dizhen"
+date: "2019.12.10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+g <- read.csv(file = "C:/Users/dizhe/Downloads/simulated HF mort data for GMPH (1K) final.csv", header=TRUE, sep=',')
+library(survival)
+```
+
+
+Exercise: Fix the problem of non-convergence in different ways
+
+Now you have a go at trying out each of these ways to fix the problem:
+
+i) change the reference category for quintile to make it 1 rather than 0
+
+ii) combine categories (combine quintile 0 with quintile 5)
+
+iii) drop the quintile 0 patients, and
+
+iv) drop the quintile variable
+
+Compare the sets of hazard ratios from each one. Which method would you prefer in this situation?
+
+### R hints
+
+To start to do the first of the above, you can use the "relevel" command, for instance:
+```{markdown}
+quintile <- relevel(quintile, ref = "1") # make the reference category quintile=1
+```
+To do the second and third of the above, you need to know how to manipulate R objects and select certain rows or columns. For example, to combine quintile values, you can do this:
+```{markdown}
+quintile_5groups <- g[,"quintile"] # best start again with the original data set, not from the existing object called "quintile"
+
+quintile_5groups[quintile_5groups==0] <- 5 # This picks the individuals with quintile=0 (note the double equals sign) and sets them to 5
+
+quintile_5groups <- factor(quintile_5groups) # lastly, tell R that this is a categorical variable and not a continuous one
+```
+One way to drop the quintile=0 people is to set their outcome variable to "NA", but there are others.
+
+### 1 Change the reference category
+
+```{r}
+quintile <- as.factor(g[,'quintile'])
+quintile <- relevel(quintile, ref = 2) # quintile 1 as the ref cat again
+
+cox <- coxph(Surv(fu_time, death) ~ age + gender + copd + quintile + ethnicgroup, data = g)
+
+summary(cox)
+```
+
+### 2 Combine categories
+To combine the quintile 0 people with the quintile 5 people, you could make a new variable, which I've called quintile_5groups, and just populate its five categories with quintile's values:
+
+```{r}
+quintile_5groups <- g[,'quintile'] # best start with the original data set, not from ¡°quintile¡± 
+
+quintile_5groups[quintile_5groups==0] <- 5 
+
+quintile_5groups <- factor(quintile_5groups) 
+
+table(quintile_5groups, exclude=NULL) 
+
+```
+```{r}
+cox <- coxph(Surv(fu_time, death) ~ age + gender + copd + quintile_5groups + ethnicgroup, data = g) 
+
+summary(cox)
+```
+
+### 3 Drop the quintile zero patients
+The next option is to drop the quintile zero patients. If you just want to run the model and not any other descriptive analyses, then you could turn the zeroes into NAs. Then coxph will simply exclude those patients because of their missing values:
+
+### 4 Drop the offending variable
+```{r}
+cox <- coxph(Surv(fu_time, death) ~ age + gender + copd + ethnicgroup, data = g) 
+
+summary(cox)
+```
+
