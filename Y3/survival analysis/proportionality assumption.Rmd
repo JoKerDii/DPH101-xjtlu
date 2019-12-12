@@ -1,0 +1,60 @@
+---
+title: "proportionality assumption"
+author: "dizhen"
+date: "2019.12.11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The proportionality assumption can be checked informally by plotting the hazards as in the video. If the assumption is met then the hazard lines will be roughly parallel to each other - note that that's only true when they're plotted on the log scale, i.e. if you take the natural logarithm of the hazards or plot them on axes on the log scale.
+
+
+
+Here are the default arguments:
+```{markdown}
+cox.zph(fit, transform="km", global=TRUE)
+```
+
+You can leave the defaults alone. To run the function for just gender in the model and see the results, you can type:
+```{markdown}
+fit <- coxph(Surv(fu_time, death) ~ gender,data = g) # fit the desired model
+
+temp <- cox.zph(fit)# apply the cox.zph function to the desired model
+
+print(temp) # display the results
+
+plot(temp) # plot the curves
+```
+
+
+
+
+```{r}
+g <- read.csv(file = "D:/git/DPH101-xjtlu/Y3/survival analysis/simulated HF mort data for GMPH (1K) final.csv", header=TRUE, sep=',')
+library(survival)
+```
+
+
+```{r}
+fit <- coxph(Surv(fu_time, death) ~ gender,data = g) # fit the desired model
+
+temp <- cox.zph(fit)# apply the cox.zph function to the desired model
+
+print(temp) # display the results
+
+plot(temp)
+```
+
+```{r}
+fit <- coxph(Surv(fu_time, death) ~ copd,data = g) # fit the desired model
+
+temp <- cox.zph(fit)# apply the cox.zph function to the desired model
+
+print(temp) # display the results
+
+plot(temp)
+```
+
