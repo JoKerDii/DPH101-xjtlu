@@ -1,0 +1,72 @@
+---
+title: "Untitled"
+author: "Elmer V Villanueva"
+date: "02 December 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Create and set your working directory
+```{r echo=TRUE}
+setwd("D:/git/DPH101-xjtlu/Y3/week13_lec_12.2")
+```
+
+# Load GLOW Data
+```{r}
+load("GLOW500FINAL.RData")
+str(GLOW500_WORK)
+head(GLOW500_WORK)
+```
+
+# Assess the relationship between age category and prior fracture
+
+## Tabulate age
+```{r}
+summary(GLOW500_WORK$AGECAT)
+```
+
+## Tabulate prior fracture
+```{r}
+summary(GLOW500_WORK$PRIORFRAC1)
+```
+
+## Cross-tabulate age by prior fracture
+```{r}
+AGEFRAC.TAB <- table(GLOW500_WORK$AGECAT, GLOW500_WORK$PRIORFRAC1)
+AGEFRAC.TAB
+```
+
+## Visualise the results
+```{r}
+mosaicplot(AGEFRAC.TAB)
+```
+
+## Perform a chi-square test
+```{r}
+chisq.test(AGEFRAC.TAB, corr = F)
+```
+
+### Assess assumption
+```{r}
+chisq.test(AGEFRAC.TAB, corr = F)$expected
+```
+
+## Perform a Fisher's exact test
+```{r}
+# fisher.test(AGEFRAC.TAB)
+```
+
+### Adjust the Fisher's exact test
+```{r}
+fisher.test(AGEFRAC.TAB, simulate.p.value=TRUE)
+```
+
+# THE END
+
+
+
+
+
