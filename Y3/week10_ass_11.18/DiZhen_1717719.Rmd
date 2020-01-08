@@ -1,0 +1,166 @@
+---
+title: "Di Zhen(1717719)"
+author: "dizhen"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1.
+
+### Step1. Data
+The data comes from a study by Thienprasiddhi et al.
+```{r}
+ages <- c(62, 62, 68, 48, 51, 60, 51, 57, 57, 41, 62, 50, 53, 34, 62, 61)
+hist(ages,
+     xlab = "Ages (years)",
+     main = "The age distribution of 16 subjects with open-angle glaucoma \n and unilateral hemield defects.")
+summary(ages)
+```
+
+### Step2. Assumptions
+1.The sample is simple random sample 
+2.The sample size is n = 16, which does not >30. In the histogram, the data appear to be from a normally distributed population.
+Both requirments are satisfied.
+
+### Step3. Hypothesis
+Alternative hypothesis: the mean age $\bar{x}$ of the population is less than 60.
+$$H_0: \bar{x}\geqslant60\\
+H_A: \bar{x}< 60$$
+
+### Step4. Test Statistic
+As population $\sigma$ is unknown, we apply t-test.
+$$t = \frac{\bar{x}-\mu}{s/\sqrt{n}}$$
+$$\nu = n-1$$
+
+
+### Step5. Distribution of the Test Statistic
+
+As the sampling distribution of t is the standard normal distribution, so:
+$$t \sim N(0,1)$$
+
+### Step6. Decision Rule
+
+This is a left-tailed test. The significant level $\alpha = 0.05$, so that critical value $t_0 = -1.75$. This determines that the critical region is the area where $t_0 < -1.75$. 
+```{r}
+alpha <- 0.05
+t_alpha <- qt(1 - alpha,15)
+-t_alpha
+```
+
+### Step7. Calculation of test statistic
+$$t = \frac{\bar{x}-\mu}{s/\sqrt{n}} = \frac{54.9-60}{8.8/\sqrt{16}} = -2.282$$
+This consists of calculation in step4 and the result $t = -2.282$ is compared to the critical value calculated in step6.
+t value = -2.282 is less than critical value $t_0 = -1.75$.
+```{r}
+ages_bar <- mean(ages)
+ages_n <- length(ages)
+ages_mu0 <- 60
+ages_sd <- sd(ages) 
+ages_t <- sqrt(ages_n)*(ages_bar-ages_mu0)/ages_sd
+ages_t
+```
+
+### Step8. Statistical decision
+Since the t value falls in the rejection region, we rejected null hypothesis.
+
+### Step9. Conclusion
+As we reject the null hypothesis, we can conclude that the mean age $\bar{x}$ of the population from which the sample may be presumed to have been drawn is significantly less (t = -2.282, df = 15, p-value = 0.019) than 60.
+
+### Step10. P-value
+```{r}
+p_value = pt(-abs(ages_t),df=15)
+p_value
+```
+p-value is  0.019.
+1. If the study is repeated many times, there is 1.9% chance of observing the mean age $\bar{x}$ of the population is less than 60.
+2. There is a 1.9% chance that observing a same age in our samples or even less age.
+
+```{r}
+t.test(ages, 
+       mu = 60,
+       alternative = c("less"),
+       conf.level = 0.95)
+```
+## Exercise 2.
+### Step1. Data
+```{r}
+vent <- c(132, 33, 91, 108, 67, 169, 54, 203, 190, 133, 96, 30, 187, 21, 63, 166, 84, 110, 157, 138)
+hist(vent,
+     xlab = "Maximum voluntary ventilation value (L/min)",
+     main = "The distribution of maximum voluntary ventilation value \n for apparently healthy college seniors.")
+summary(vent)
+```
+### Step2. Assumptions
+1.The sample is simple random sample.
+2.The sample size is n = 20, which does not >30. In the histogram, the data appear to be from a normally distributed population.
+Both requirments are satisfied.
+
+### Step3. Hypothesis
+Alternative hypothesis: mean maximum voluntary ventilation value $\bar{x}$ for apparently healthy college seniors is not 110 liters per minute.
+$$H_0: \bar{x} = 60\\
+H_A: \bar{x} \neq 60$$
+
+### Step4. Test Statistic
+As population $\sigma$ is unknown, we use t-test.
+$$t = \frac{\bar{x}-\mu}{s/\sqrt{n}}$$
+$$\nu = n-1$$
+
+
+### Step5. Distribution of the Test Statistic
+
+As the sampling distribution of t is the standard normal distribution, so:
+$$t \sim N(0,1)$$
+
+### Step6. Decision Rule
+
+This is a two-tailed test. The significant level $\alpha = 0.01$, so that the critical value is $t_0 = 2.58$ This determines that the critical region is the area where $t < --2.86$ and $t > 2.86$. 
+```{r}
+alpha1 <- 0.01
+t_alpha1 <- qt(1 - alpha1/2, 19)
+-t_alpha1
+```
+
+
+### Step7. Calculation of test statistic
+$$t = \frac{\bar{x}-\mu}{s/\sqrt{n}} = \frac{111.6-110}{56.3/\sqrt{20}} = 0.127$$
+This consists of calculation in step4 and the result $t = 0.127$ is compared to the critical value calculated in step6.
+t value 0.127 falls between $t_0 = 2.86$ and  $-t_0 = -2.86$.
+```{r}
+vent_bar <- mean(vent)
+vent_n <- length(vent)
+vent_mu0 <- 110
+vent_sd <- sd(vent) 
+vent_t <- sqrt(vent_n)*(vent_bar-vent_mu0)/vent_sd
+vent_t
+```
+
+
+### Step8. Statistical decision
+
+Since the t value does not fall in the rejection region, we fail to reject null hypothesis.
+
+
+### Step9. Conclusion
+
+As we fail to reject null hypothesis, We can conclude that mean maximum voluntary ventilation value $\bar{x}$ for apparently healthy college seniors has not found to differ significantly (t = 0.127, df = 19, p-value = 0.900) with 110 liters per minute.
+
+
+### Step10. P-value
+
+1. If the study is repeated many times, there is 90% chance that the mean maximum voluntary ventilation value $\bar{x}$ of the population is different or more different than 110 liters per minute.
+
+2. There is a 90% chance of observing a difference as large or larger than observed.
+
+```{r}
+t.test(vent, 
+       mu = 110,
+       alternative = c("two.sided"),
+       conf.level = 0.99)
+```
+
+Q: What assumptions are necessary?
+A: Assume the data were randomly sampled and voluntary ventilation value of population are normally distributed.
