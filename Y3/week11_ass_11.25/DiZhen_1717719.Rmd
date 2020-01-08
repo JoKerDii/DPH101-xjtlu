@@ -1,0 +1,142 @@
+---
+title: '1717719'
+author: "dizhen"
+date: "11/25/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Step1. Data
+
+```{r}
+PH <- c(207, 221, 212, 220, 190, 172, 223, 260, 214, 245, 191, 181, 210, 215, 171, 221, 217, 265, 206, 261, 203, 208, 206, 247, 182, 241, 202, 198, 221, 162, 208, 218, 210, 199, 182, 199, 216, 211, 196, 225, 185, 168, 274, 239, 203, 235, 168, 223, 199, 195, 214, 214, 175, 244, 178, 134, 203, 203, 214, 240, 226, 280, 168, 236, 222, 222, 203, 178, 249, 117, 213, 225, 217, 212, 252, 272, 227, 200, 259, 203, 185, 239, 226, 189, 245, 181, 265, 207, 235, 218, 238, 228, 232, 239, 152, 141, 226, 182, 239, 231, 203, 236, 215, 210, 237, 222, 195, 239, 203, 221, 284, 210, 188, 180, 183, 207, 237, 276, 266, 224, 231, 226, 258, 251, 222, 224, 214, 212, 174, 206, 260, 201, 219)
+
+NT <- c(286, 189, 226, 196, 187, 142, 204, 179, 203, 212, 206, 163, 196, 196, 168, 189, 229, 142, 184, 168, 186, 121, 281, 203, 177, 135, 179, 161, 194, 206, 219, 173, 189, 194, 196, 212, 168, 188, 232, 242, 200)
+```
+
+Visualise and summarize data
+```{r}
+hist(PH,
+     xlab = "Total cholesterol measurements (mg/dl)",
+     main = "Total cholesterol measurements (mg/dl) of \n 133 patients with primary hypertension")
+summary(PH)
+```
+
+```{r}
+hist(NT,
+     xlab = "Total cholesterol measurements (mg/dl)",
+     main = "Total cholesterol measurements (mg/dl) of \n 41 normotensive patients.")
+summary(NT)
+```
+
+
+```{r}
+patients <- c(rep("PH", length(PH)))
+total_cholesterol_measurments <- PH
+df1 <- data.frame(patients, total_cholesterol_measurments)
+
+patients <- c(rep("NT", length(NT)))
+total_cholesterol_measurments <- NT
+df2 <- data.frame(patients, total_cholesterol_measurments)
+
+mydf <- rbind.data.frame(df1,df2)
+```
+
+```{r}
+str(mydf)
+head(mydf)
+```
+A plot that compares the two total cholesterol measurements of the two groups
+
+```{r}
+boxplot(total_cholesterol_measurments ~ patients, data = mydf,
+         main = "Comparison of two total cholesterol measurements of the two groups",
+         ylab = "Total cholesterol measurments")
+```
+```{r}
+with(mydf, rbind(MEAN<-tapply(total_cholesterol_measurments,patients,mean), 
+                 VAR<-tapply(total_cholesterol_measurments,patients,var)))
+
+```
+Conclusion. There was no evidence of non-normality (boxplots not grossly asymmetrical) or unequal variance (boxplots very similar size and variances very similar). Hence, the simple, studentized (pooled variances) t-test is likely to be reliable.
+
+### Step2. Assumptions
+1. Both samples are simple random samples.
+2. Two samples are independent, they are not matched or paired in any way.
+3. Both sample sizes are large (n1>30 and n2>30)
+4. Both population standard deviations $\sigma_1$ and $\sigma_2$ are unknown.
+All requirements are satisfied, we perform a two sample t test with equal variances.
+
+### Step3. Hypothesis
+Alternative hypothesis: The mean of total cholesterol levels of patients with primary hypertension (PH) $\bar{x_1}$ is higher than it of normotensive (NT) patients $\bar{x_2}$.
+
+$$H_0: \bar{x_1} \leqslant \bar{x_2}\\
+H_A: \bar{x_1} > \bar{x_2}$$
+
+
+### Step4. Test Statistic
+We consider the population variances are equal, then we can pool the sample variances:
+$$s_p^2 = \frac{s_1^2 (n_1 - 1) + s_2^2 (n_2 - 1)}{n_1 + n_2 - 2}$$
+
+$$t = \frac{\bar{x_1}-\bar{x_2}}{\sqrt{ \frac{s_p^2}{n_1} + \frac{s_p^2}{n_2} }}$$
+$$\nu = n_1 + n_2 -2$$
+
+### Step5. Distribution of the Test Statistic
+As the sampling distribution of t is the standard normal distribution, so:
+$$t \sim N(0,1)$$
+
+### Step6. Decision Rule
+This is an independent two-sample t-test with equal variance. The significant level $\alpha = 0.05$, so that critical value $t_0 = 1.64$. This determines that the critical region is the area where $t_0 > 1.64$. 
+```{r}
+alpha <- 0.05
+t_alpha <- qt(1-alpha, 172)
+t_alpha
+```
+
+### Step7. Calculation of test statistic
+
+Perform an independent two-sample t-test with equal variance.  $\alpha = 0.05$.
+
+The t test statistic: $$t = \frac{\bar{x_1}-\bar{x_2}}{\sqrt{ \frac{s_p^2}{n_1} + \frac{s_p^2}{n_2} }} = 3.953$$
+
+
+This consists of calculation in step4 and the result $t = 3.953$ is compared to the critical value calculated in step6.
+
+t value 3.953 is more than critical value $t_0 = 1.65$.
+
+95% Confidence interval of the difference in means is (11, 32), we are 95% confident that the population mean of difference is between 10 and 32 because on repeated sampling, 95% of all intervals created in this manner would include the population mean.
+
+```{r}
+# this is for calculating confidence interval, p-value is not correct
+t.test(total_cholesterol_measurments ~ patients, 
+       data = mydf, 
+       alternative = "two.sided",
+       var.equal = T,
+       conf.level = 0.95)
+```
+### Step8. Statistical decision
+Since the t value falls in the rejection region, we rejected null hypothesis.
+
+### Step9. Conclusion
+As we reject the null hypothesis, we conclude that the mean of total cholesterol levels of patients with primary hypertension (PH) $\bar{x_1}$ is significantly greater (t = 3.953, df = 172, p-value < 0.001) than it of normotensive (NT) patients $\bar{x_2}$.
+
+### Step10. P-value
+P-value is less than 0.001. 
+1. If the study is repeated many times, there is less 0.1% chance that I would observe the mean total cholesterol levels of patients with primary hypertension (PH) $\bar{x_1}$ is higher than it of normotensive (NT) patients $\bar{x_2}$.
+2. There is a 0.1% chance of observing a greater mean of PH than NT from random sampling than observed.
+
+```{r}
+# this is for calculating p-value, confidence interval is not correct.
+t.test(total_cholesterol_measurments ~ patients, 
+       data = mydf, 
+       alternative = "greater",
+       var.equal = T)
+```
+
+#### Note: A graph that compares the two total cholesterol measurements of the two groups is plotted in step1. 95% confidence interval of the difference in means is calculated in step7.
+
+
+
