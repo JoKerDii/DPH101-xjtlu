@@ -1,0 +1,63 @@
+---
+title: "16-17 DPH101 resit C. Comparing Proportions"
+author: "dizhen"
+date: "2020.1.5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## C. Comparing Proportions
+### Step1. Data
+
+```{r}
+preference <- matrix(c(19,14,9,45,5,10,6,39),ncol=4,byrow=TRUE)
+colnames(preference) <- c("Day1","Day2","Day3","Day4")
+rownames(preference) <- c("Black Oil","Striped")
+mytable <- as.table(preference)
+mytable
+```
+
+### Step2. Assumptions
+1. The sample data are randomly selected.
+2. The sample data are represented in two-way table
+3. No more than 20% of the cells in the contingency table have expected frequencies < 5.(The lowest expected frequency is 8.878) The requirements are satisfied.
+
+```{r}
+chisq.test(mytable,corr = F)$expected
+```
+### Step3. Hypothesis
+
+H0: The preference for sunflower seeds and different days are independent 
+
+H1: The preference for sunflower seeds and different days are dependent
+
+### Step4. Test statistics
+### Step5. Distribution of the Test Statistic
+
+We use $\chi^2 ~~distribution$
+
+
+### Step6. Decision rule
+
+### Step7. Calculation of the test statistic
+
+Chi-square test
+
+```{r}
+chisq.test(mytable, corr = F)
+```
+
+### Step8. Statistical decision
+
+### Step9. Conclusion
+
+As p-value (=0.167) is large (larger than 0.05), we fail to reject the null hypothesis and conclude that the preference for sunflower seeds and different days are independent.  
+
+### Step10. p-value 
+
+1. p-value is 0.167, there is a nearly 16.7% chance of observing a dependence from randomly sampling as large or larger than observed. 
+
+2. If you repeated the study many times, nearly 16.7% of the time you would observe the same or larger dependence.

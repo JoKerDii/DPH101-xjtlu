@@ -1,0 +1,108 @@
+---
+title: "16/17 DPH101 final B. Comparing Two Means"
+author: "dizhen"
+date: "2020.1.7"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## B. Comparing Two Means
+
+### Step1. Data
+
+```{r}
+DRUG_A <- c(3.14,3.45,3.32,3.45,3.09,3.27,3.64,2.5,2.64,3.32,3.73,3.14,3.09,2.59,3.91)
+CON <- c(2.91,3.05,2.45,3.73,2.41,3,2.64,2.59,2.82,3.23,3.18,3.14,2.55,1.91,3.09)
+```
+
+```{r}
+hist(DRUG_A)
+hist(CON)
+```
+
+```{r}
+treatment <- c(rep("DRUG_A", length(DRUG_A)))
+weight <- DRUG_A
+df1 <- data.frame(treatment, weight)
+
+treatment <- c(rep("CON", length(CON)))
+weight <- CON
+df2 <- data.frame(treatment, weight)
+
+mydf <- rbind.data.frame(df1,df2)
+mydf
+```
+```{r}
+boxplot(weight ~ treatment, data = mydf)
+```
+Conclusion. There was no evidence of non-normality (boxplots not grossly asymmetrical) or unequal variance (boxplots very similar size and variances very similar). Hence, the simple, studentized (pooled variances) t-test is likely to be reliable.
+
+### Step2. Assumption
+1. Both samples are simple random samples.
+2. Two samples are independent, they are not matched or paired in any way.
+3. Both sample sizes are normally distributed.
+4. Both population standard deviations $\sigma_1$ and $\sigma_2$ are unknown.
+
+### Step3. Hypothesis
+Alternative hypothesis: The mean of birthweights after taking drug A $\bar{x_1}$ is higher than it of control $\bar{x_2}$.
+$$H_0: \bar{x_1} \leqslant \bar{x_2}\\
+H_A: \bar{x_1} > \bar{x_2}$$
+
+### Step4. Test Statistic
+We consider the population variances are equal, then we can pool the sample variances:
+$$s_p^2 = \frac{s_1^2 (n_1 - 1) + s_2^2 (n_2 - 1)}{n_1 + n_2 - 2}$$
+$$t = \frac{\bar{x_1}-\bar{x_2}}{\sqrt{ \frac{s_p^2}{n_1} + \frac{s_p^2}{n_2} }}$$
+$$\nu = n_1 + n_2 -2$$
+
+### Step5. Distribution of the Test Statistic
+As the sampling distribution of t is the standard normal distribution, so:
+$$t \sim N(0,1)$$
+
+### Step6. Decision Rule
+This is an independent two-sample t-test with equal variance. The significant level $\alpha = 0.05$, so that critical value $t_0 = 1.64$. This determines that the critical region is the area where $t_0 > 1.64$. 
+```{r}
+alpha <- 0.05
+t_alpha <- qnorm(1 - alpha)
+t_alpha
+```
+
+### Step7. Calculation of test statistic
+
+Perform an independent two-sample t-test with equal variance.  $\alpha = 0.05$.
+
+The t test statistic: $$t = \frac{\bar{x_1}-\bar{x_2}}{\sqrt{ \frac{s_p^2}{n_1} + \frac{s_p^2}{n_2} }} = 2.407$$
+
+This consists of calculation in step4 and the result $t = 2.407$ is compared to the critical value calculated in step6.
+t value 2.407 is more than critical value $t_0 = 1.64$.
+95% Confidence interval of the difference in means is (0.06, 0.69), we are 95% confident that the population mean is between 0.06 and 0.69 because on repeated sampling, 95% of all intervals created in this manner would include the population mean.
+
+```{r}
+# this is for calculating confidence interval, p-value is not correct
+t.test(weight ~ treatment, 
+       data = mydf, 
+       alternative = "two.sided",
+       var.equal = T)
+```
+
+
+```{r}
+# this is for calculating p-value, confidence interval is not correct.
+t.test(weight ~ treatment, 
+       data = mydf, 
+       alternative = "greater",
+       var.equal = T)
+```
+
+### Step8. Statistical decision
+Since the t value falls in the rejection region, we rejected null hypothesis.
+
+### Step9. Conclusion
+As we reject the null hypothesis, we conclude that the mean of birthweights after taking drug A $\bar{x_1}$ is significantly greater (t = 2.407, df = 28, p-value < 0.011) than control $\bar{x_2}$.
+
+### Step10. P-value
+P-value is 0.011, which is less than 0.05. 
+1. If the study is repeated many times, there is 1.1% chance of observing the mean of birthweights after taking drug A $\bar{x_1}$ is higher than control $\bar{x_2}$.
+2. There is a 1.1% chance of observing a same or greater mean birthweight after taking drug than control from random sampling than observed.

@@ -1,0 +1,178 @@
+---
+title: "18/19 DPH101 final C.Compare More Than Two Means"
+author: "dizhen"
+date: "2019.12.27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## C.Compare More Than Two Means
+### Step1. Data
+```{r}
+LEVELS <- c(0.637,0.354,0.287,0.533,0.228,0.632,0.303,0.194,0.293,0.276,0.226,0.395,0.994,0.89,0.809,0.321,0.712,0.949,0.933,0.28,0.336,0.678,0.714,0.757)
+TEMPERATURE <- factor(c(rep(0, times = 6), rep(1, times=6),
+                  rep(0, times = 6), rep(1, times = 6)),
+                labels = c("Unheated", "Heated"))
+
+SOURCES <- factor(c(rep(0, times = 12), rep(1, times=12)),
+                labels = c("Juice", "Chromoplast"))
+mydata <- data.frame(LEVELS,TEMPERATURE,SOURCES)
+str(mydata)
+head(mydata)
+```
+
+```{r}
+boxplot(LEVELS ~ TEMPERATURE * SOURCES,
+        data = mydata)
+```
+Conclusion. There is no evidence of non-normality (boxplots not grossly asymmetrical), variances are a little unequal (although perhaps not grossly unequal - one of the boxplots is not more than three times smaller than the other). 
+
+### Step2. Assumptions
+1. For each group, the sample values appear to be from a population with a distribution that is approximately normal.
+2. The variance of the groups as indicated in the graph differ considerably, but the test is robust against departures from equal variances.
+3. The samples are simple random samples of subjects
+4. The samples are independent of each other.
+5. The sample values are categorized in two ways (temperature and source)
+6. All of the groups have the same number(6) of sample values.
+The requirements are satisfied. We perform two-way analysis of variance.
+
+### Step3. Hypothesis
+Because there seems to be an interaction effect, we perform factorial design.
+$$H_0: There~~is~~no~~joint~~effect~~of~~source~~and~~temperature$$
+$$H_A: There~~is~~an~~joint~~effect~~of~~source~~and~~temperature$$
+
+
+### Step4. Test Statistic
+F = MS(interaction)/MS(error)
+
+### Step5. Distribution of the Test Statistic
+We use F distribution
+
+### Step6. Decision Rule
+### Step7. Calculation of test statistic
+
+```{r}
+LEVELS.AOV <- aov(LEVELS ~ TEMPERATURE * SOURCES,
+                    data = mydata)
+summary(LEVELS.AOV)
+```
+
+### Step8. Statistical decision
+### Step9. Conclusion
+1. Interaction effect
+We fail to reject the null hypothesis of no effect of interaction, as the p value (0.994) is large (more than 0.05). We conclude that there appears no effect of interaction of sources and temperature on the serum concentration of beta-carotene in ferrets.
+
+
+### Step3. Hypothesis
+$$H_0: There~~is~~no~~effect~~of~~a~~source$$
+$$H_A: There~~is~~an~~effect~~of~~a~~source$$
+$$H_0: There~~is~~no~~effect~~ of~~ temperature$$
+$$H_A: There~~ is~~ an ~~effect ~~of ~~a ~~temperature$$
+
+
+
+### Step4. Test Statistic
+F = MS(source)/MS(error)
+F = MS(temperature)/MS(error)
+
+### Step5. Distribution of the Test Statistic
+We use F distribution
+
+### Step6. Decision Rule
+### Step7. Calculation of test statistic
+
+```{r}
+LEVELS.AOV <- aov(LEVELS ~ TEMPERATURE * SOURCES,
+                    data = mydata)
+summary(LEVELS.AOV)
+```
+
+### Step8. Statistical decision
+### Step9. Conclusion
+2. Row/column effect
+Only the null hypothesis of no effect of sources can be rejected, as the p-value (0.0006) of it is less than 0.05. We conclude that there is an effect of sources on the serum concentration of beta-carotene in ferrets.
+We fail to reject the null hypothesis of no effect of temperature, as the p-value (0.061) is greater than 0.05. We conclude that there appears no effect of temperature on the serum concentration of beta-carotene in ferrets.
+
+### Step10. P-value
+1. There is a 0.06% chance of observing an effect of sources from randomly sampling subject as large or larger than observed.
+2. If you repeated the study many times, 0.06% of the time you would observe larger effect.
+
+### A single model
+Write down a single model to assess the effect of temperature and source on serum concentration of beta-carotene, allowing for the posibility that differences between mean concentrations of different sources vary by temperature.
+
+$$x_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \varepsilon_{ijk}$$
+
+where i = 1,2, j = 1,2, k = 1,2,3,4,5,6
+
+$x_{ijk}$ is a typical observation
+
+$\mu$ is an unknown constant
+
+$\alpha_i$ is the effect due to sources
+
+$\beta_i$ is the effect due to temperatures
+
+$(\alpha \beta)_{ij}$ is the effect due to interaction of temperatures and sources
+
+$\varepsilon_{ijk}$ is the error term representing all other sources of variation
+
+### A statistical interaction
+```{r}
+Unh_Ju <- c(0.637,0.354,0.287,0.533,0.228,0.632)
+h_Ju <- c(0.303,0.194,0.293,0.276,0.226,0.395)
+Unh_Chr <- c(0.994,0.89,0.809,0.321,0.712,0.949)
+h_Chr <- c(0.933,0.28,0.336,0.678,0.714,0.757)
+
+
+beta <- matrix(c(mean(Unh_Ju), mean(h_Ju), mean(Unh_Chr), mean(h_Chr)) ,ncol = 2, byrow = TRUE)
+colnames(beta) <- c("Unheated","Heated")
+rownames(beta) <- c("Juice", "Chromoplast")
+mytable <- as.table(beta)
+mytable
+
+
+library(dplyr)
+newdata <- mydata %>% group_by(SOURCES,TEMPERATURE) %>% summarize_all("mean")
+newdata
+
+```
+```{r}
+op <- par(mar = c(4, 4, 0.1, 0.1))
+plot(LEVELS ~ as.factor(TEMPERATURE), 
+     data = newdata, 
+     type = "n", 
+     axes = F, 
+     xlab = "", 
+     ylab = "")
+with(subset(newdata, SOURCES == "Juice"), 
+     points(LEVELS ~ as.factor(TEMPERATURE), 
+            pch = 21, 
+            type = "o", 
+            lwd = 1))
+with(subset(newdata, SOURCES == "Chromoplast"), 
+     points(LEVELS ~ as.factor(TEMPERATURE), 
+            pch = 16, 
+            type = "o", 
+            lwd = 1))
+
+axis(1, cex.axis = 0.8)
+mtext(text = "Temperature", 
+      side = 1, 
+      line = 2)
+axis(2, cex.axis = 0.8, las = 1)
+mtext(text = "Levels", 
+      side = 2, 
+      line = 2)
+legend("topleft", 
+       leg = c("Juice", "Chromoplast"), 
+       lty = 0, 
+       pch = c(21, 16), 
+       bty = "n", 
+       cex = 0.7)
+box(bty = "l")
+```
+An interaction effect means that the effect of one factor depends on the other factor and it's shown by the lines in our interaction graph running parallel.
+In this case, the effect for serum beta-carotene levels have no interact with sources. That is,
+carrot juice affects levels similarly with carrot chromoplast.

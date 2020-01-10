@@ -1,0 +1,84 @@
+---
+title: "18/19 DPH101 final D. Comparing Proportions"
+author: "dizhen"
+date: "2019.12.27"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## D. Comparing Proportions
+### Step1. Data
+```{r}
+percent <- c(15.2, 30.4,24.2,30.2, 5.8,23.6,40.8,29.8,0.2,0.4,1.2,98.2,59.8,26.8,11.8,1.6)
+n_percent <- percent * 5
+level <- factor(c(rep(c(0:3), times = 4)),
+              labels = c("4", "3", "2", "1"),
+              ordered = F)
+location <- factor(c(rep(0, times = 4), 
+                 rep(1, times = 4), 
+                 rep(2, times = 4),
+                 rep(3, times = 4)),
+               labels = c("Qiongliu", "Gaomi", "Jiange","Zichuan"))
+mydata <- data.frame(n_percent,level, location )
+mytable <- xtabs(n_percent~location+level, mydata)
+mytable
+
+# Alternative
+# percent <- matrix(c(15.2, 30.4,24.2,30.2, 5.8,23.6,40.8,29.8,0.2,0.4,1.2,98.2,59.8,26.8,11.8,1.6),ncol = 4, byrow = TRUE)
+# colnames(percent) <- c("4", "3", "2", "1")
+# rownames(percent) <- c("Qiongliu", "Gaomi", "Jiange","Zichuan")
+# mytable <- as.table(percent)
+# mytable
+
+```
+### Step2. Assumptions
+1. The sample data are randomly selected.
+2. The sample data are represented in two-way table
+3. No more than 20% of the cells  in the contingency table have expected frequencies < 5.(The lowest expected frequency is 6.122)
+The requirements are satisfied.
+
+```{r}
+chisq.test(mytable,corr = F)$expected
+```
+
+
+### Step3. Hypothesis
+
+H0: The location and selenium levels are independent
+
+H1: The location and selenium levels are dependent
+
+### Step4. Test statistics
+### Step5. Distribution of the Test Statistic
+
+We use $\chi^2 ~~distribution$
+
+### Step6. Decision rule
+
+### Step7. Calculation of the test statistic
+
+Chi-square test
+
+```{r}
+chisq.test(mytable, corr = F)
+```
+
+### Step8. Statistical decision
+
+### Step9. Conclusion
+
+As p-value (< 2.2e-16) is very small, we reject the null hypothesis and conclude that location and selenium levels are dependent.
+
+### Step10. p-value
+
+1. p-value is less than 2.2e-16, there is a nearly 0 chance of observing a dependence from randomly sampling as large or larger than observed.
+
+2. If you repeated the study many times, nearly all the time you would observe smaller dependence and nearly 0 of the time you would observe larger dependence.
+
+
+

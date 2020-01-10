@@ -1,0 +1,65 @@
+---
+title: "calculation"
+author: "dizhen"
+date: "2020.1.7"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+alpha <- 0.05
+df <- 10
+# calculate z score (two tailed)
+qnorm(1 - alpha/2)
+# calculate t score (two tailed)
+qt(1-alpha/2, df)
+```
+
+10.1. Calculating a Single p Value From a Normal Distribution
+```{r}
+a <- 5
+s <- 2
+n <- 20
+xbar <- 7
+z <- (xbar-a)/(s/sqrt(n))
+2*pnorm(-abs(z))
+```
+
+10.2. Calculating a Single p Value From a t Distribution
+```{r}
+a <- 5
+s <- 2
+n <- 20
+xbar <- 7
+t <- (xbar-a)/(s/sqrt(n))
+2*pt(-abs(t),df=n-1)
+```
+
+one sample t test
+```{r}
+x = c(9.0,9.5,9.6,10.2,11.6)
+t.test(x,mu=10)
+```
+
+One-way anova
+```{r}
+group1 <- c(2,3,7,2,6)
+group2 <- c(10,8,7,5,10)
+group3 <- c(10,13,14,13,15)
+combined_groups <- data.frame(cbind(group1, group2, group3))
+stacked_groupd <- stack(combined_groups)
+stacked_groupd
+anova_result <- aov(values ~ ind, data = stacked_groupd)
+summary(anova_result)
+```
+
+calculate p value from fscore:
+```{r}
+# F stats, numerator df, denominator df
+pf(5, 3, 14, lower.tail = FALSE)
+```
+
