@@ -1,12 +1,22 @@
 # DPH101-xjtlu
 
-I' m very glad to study DPH101 (Statistics and R) and finish assignments two year before I should do. 
+I' m very glad to take DPH101 and finish assignments two year before I should do with the help of a senior student Yiyou Song.
 
-Thanks very much to a senior student Yiyou Song, who provided the learning resource to me and answered all my questions.
+Thanks to him for providing the learning resources to me and answering all my questions.
 
--- From Jun to Aug, 2018
+-- Jun-Aug, 2018
 
+**Module Code: DPH101**
 
+**Module Title: Methods for Analysing Public Health II: Biostatistics I**
+
+**Module Credits: 5.00**
+
+**Originating Department: Health and Environmental Science**
+
+**Pre-requisites: N/A**
+
+### Content
 
 - **Week01. Introduction**
 
